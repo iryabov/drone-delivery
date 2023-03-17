@@ -11,4 +11,5 @@ public class DroneBriefInfo {
     private String name;
     private DroneState state;
     private Integer batteryLevel;
+    private Integer weightLimit;
 }

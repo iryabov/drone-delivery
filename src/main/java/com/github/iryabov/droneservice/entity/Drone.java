@@ -14,13 +14,13 @@ public class Drone {
     private Integer id;
     @Column(name = "serial")
     private String serial;
-    @ManyToOne
-    @JoinColumn(name = "model_id")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "model_id")
     private DroneModel model;
     @Column(name = "weight_limit")
-    private Integer weightLimit;
-    @ManyToOne
-    @JoinColumn(name = "state_id")
+    private Double weightLimit;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state_id")
     private DroneState state;
     @ManyToOne
     @JoinColumn(name = "shipping_id")

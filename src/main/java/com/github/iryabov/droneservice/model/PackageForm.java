@@ -9,7 +9,6 @@ import java.util.List;
 @Builder
 public class PackageForm {
     private List<Item> items;
-    private double totalWeight;
 
     @Getter
     @Setter

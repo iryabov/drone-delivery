@@ -21,8 +21,8 @@ public class ShippingLog {
     @ManyToOne
     @JoinColumn(name = "shipping_id")
     private Shipping shipping;
-    @ManyToOne
-    @JoinColumn(name = "event_id")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_id")
     private ShippingEvent event;
     @Column(name = "new_value")
     private String newValue;

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Service
 public interface DroneService {
     int create(DroneRegistrationForm registrationForm);
     void delete(int droneId);

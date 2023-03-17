@@ -21,9 +21,9 @@ public class Shipping {
     private Location destination;
     @Column(name = "delivery_address")
     private String deliveryAddress;
-    @ManyToOne
-    @JoinColumn(name = "status_id")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_id")
     private DeliveryStatus status;
-    @OneToMany(mappedBy = "shipping_id")
+    @OneToMany(mappedBy = "shipping")
     private List<PackageItem> items;
 }

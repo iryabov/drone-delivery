@@ -18,8 +18,8 @@ public class DroneLog {
     @ManyToOne
     @JoinColumn(name = "drone_id")
     private Drone drone;
-    @ManyToOne
-    @JoinColumn(name = "event_id")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_id")
     private DroneEvent event;
     @Column(name = "new_value")
     private String newValue;
