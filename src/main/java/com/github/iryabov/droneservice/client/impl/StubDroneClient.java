@@ -4,10 +4,8 @@ import com.github.iryabov.droneservice.client.DroneClient;
 import com.github.iryabov.droneservice.entity.DroneModel;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -22,9 +20,9 @@ public class StubDroneClient implements DroneClient {
                 DroneEmulator drone = entry.getValue();
                 drone.compute(1);
                 System.out.println("Drone " + entry.getKey()
-                        + " location: (" + drone.getLocation().getLat() + "," + drone.getLocation().getLon() + ")"
-                        + ", battery: " + drone.getBatteryLevel()
-                        + ", loading: " + drone.getLoadingPercentage()
+                        + " location (" + drone.getLocation().getLat() + "," + drone.getLocation().getLon() + ")"
+                        + ", battery " + drone.getBatteryLevel() + "%"
+                        + ", loading " + drone.getLoadingPercentage() + "%"
                 );
             }
         }, 1L, 1L, TimeUnit.SECONDS);

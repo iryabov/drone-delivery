@@ -11,8 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -25,7 +25,7 @@ public class ShippingServiceTest {
     void simpleSuccessfulDelivery() {
         var drones = service.getDronesReadyForLoading();
         assertThat(drones.size(), greaterThan(0));
-        assertThat(drones.stream().map(DroneBriefInfo::getState).collect(Collectors.toList()), everyItem(is(DroneState.IDLE)));
+        assertThat(drones.stream().map(DroneBriefInfo::getState).collect(toList()), everyItem(is(DroneState.IDLE)));
 
         //loading package
         var someDrone = drones.get(0);
@@ -40,7 +40,7 @@ public class ShippingServiceTest {
 
         //checking that the drone loaded
         drones = service.getDronesReadyForShipping();
-        assertThat(drones.stream().map(DroneBriefInfo::getState).collect(Collectors.toList()), everyItem(is(DroneState.LOADED)));
+        assertThat(drones.stream().map(DroneBriefInfo::getState).collect(toList()), everyItem(is(DroneState.LOADED)));
         assertThat(drones.stream().map(DroneBriefInfo::getId).findAny(), is(Optional.of(someDrone.getId())));
 
         //sending drone
@@ -67,7 +67,7 @@ public class ShippingServiceTest {
         //checking that the drone returned
         drones = service.getDronesReadyForLoading();
         assertThat(drones.size(), greaterThan(0));
-        assertThat(drones.stream().map(DroneBriefInfo::getId).findAny(), is(Optional.of(someDrone.getId())));
+        assertThat(drones.stream().map(DroneBriefInfo::getId).collect(toList()), hasItem(someDrone.getId()));
 
         //checking logs
         var logs = service.trackShipment(shippingId);

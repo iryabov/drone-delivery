@@ -5,9 +5,9 @@ import com.github.iryabov.droneservice.client.DroneClient;
 import static java.lang.Math.abs;
 
 public class DroneEmulator implements DroneClient.Driver {
-    private final double batteryDischargeRate = 0.2777;
-    private final double batteryChargeRate = 0.2777;
-    private final double loadingSpeed = 0.2;
+    private static final double BATTERY_DISCHARGE_RATE = 20;
+    private static final double BATTERY_CHARGE_RATE = 50;
+    private static final double LOADING_SPEED = 0.2;
     private final double flySpeed;
     private final double weightCapacity;
     private final double batteryCapacity;
@@ -41,6 +41,7 @@ public class DroneEmulator implements DroneClient.Driver {
 
     @Override
     public synchronized void unload() {
+        currentLoading = loadWeight;
         loadWeight = 0;
     }
 
@@ -102,21 +103,21 @@ public class DroneEmulator implements DroneClient.Driver {
 
     private synchronized void lowBattery(int seconds) {
         if (currentBattery > 0 && !isReachedDestination()) {
-            double discharge = currentBattery - batteryDischargeRate * seconds;
+            double discharge = currentBattery - BATTERY_DISCHARGE_RATE * seconds;
             currentBattery = Math.max(discharge, 0);
         }
     }
 
     private synchronized void chargeBattery(int seconds) {
         if (currentBattery < batteryCapacity && isOnBase()) {
-            double charge = currentBattery + batteryChargeRate * seconds;
+            double charge = currentBattery + BATTERY_CHARGE_RATE * seconds;
             currentBattery = Math.min(charge, batteryCapacity);
         }
     }
 
     private synchronized void loading(int seconds) {
         if (loadWeight > 0 && currentLoading > 0) {
-            double balance = currentLoading - loadingSpeed * seconds;
+            double balance = currentLoading - LOADING_SPEED * seconds;
             currentLoading = balance > 0 ? balance: 0;
         }
     }

@@ -6,7 +6,6 @@ import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneDetailedInfo;
 import com.github.iryabov.droneservice.model.DroneLogInfo;
 import com.github.iryabov.droneservice.model.DroneRegistrationForm;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -11,6 +11,7 @@ import lombok.Setter;
 public class Drone {
     @Id
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     @Column(name = "serial")
     private String serial;
