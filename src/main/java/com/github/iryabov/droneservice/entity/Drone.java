@@ -1,6 +1,7 @@
 package com.github.iryabov.droneservice.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 

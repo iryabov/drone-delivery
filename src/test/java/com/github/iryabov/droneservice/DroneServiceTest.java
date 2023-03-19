@@ -1,13 +1,19 @@
 package com.github.iryabov.droneservice;
 
+import com.github.iryabov.droneservice.entity.Drone;
 import com.github.iryabov.droneservice.entity.DroneModel;
 import com.github.iryabov.droneservice.entity.DroneState;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneRegistrationForm;
+import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.service.DroneService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -17,6 +23,17 @@ import static org.hamcrest.Matchers.*;
 public class DroneServiceTest {
     @Autowired
     private DroneService service;
+    @Autowired
+    private DroneRepository repo;
+
+    public static DroneBuilder builder() {
+        return new DroneBuilder(new Drone());
+    }
+
+    @BeforeEach
+    void setUp() {
+        repo.saveAll(getTestData());
+    }
 
     @Test
     void simpleCRUD() {
@@ -35,5 +52,60 @@ public class DroneServiceTest {
         service.delete(droneId);
         drones = service.getAllByStateAndModel(null, DroneModel.LIGHTWEIGHT);
         assertThat(drones.stream().map(DroneBriefInfo::getId).collect(toList()), not(hasItem(droneId)));
+    }
+
+    @Test
+    void getAllByStateAndModel() {
+        var drones = service.getAllByStateAndModel(DroneState.LOADING, DroneModel.MIDDLEWEIGHT);
+        assertThat(drones.size(), is(1));
+
+        drones = service.getAllByStateAndModel(null, DroneModel.MIDDLEWEIGHT);
+        assertThat(drones.size(), is(2));
+
+        drones = service.getAllByStateAndModel(DroneState.IDLE, null);
+        assertThat(drones.size(), is(2));
+        assertThat(drones.stream().map(DroneBriefInfo::getState).collect(toList()), everyItem(is(DroneState.IDLE)));
+    }
+
+    @Test
+    void getAllWithLowBattery() {
+        var drones = service.getAllWithLowBattery();
+        assertThat(drones.size(), is(2));
+    }
+
+    private static List<Drone> getTestData() {
+        List<Drone> data = new ArrayList<>();
+        data.add(builder().id(1).model(DroneModel.LIGHTWEIGHT).batteryLevel(100).state(DroneState.IDLE).build());
+        data.add(builder().id(2).model(DroneModel.MIDDLEWEIGHT).state(DroneState.LOADING).build());
+        data.add(builder().id(3).model(DroneModel.MIDDLEWEIGHT).state(DroneState.DELIVERING).batteryLevel(15).build());
+        data.add(builder().id(4).model(DroneModel.HEAVYWEIGHT).state(DroneState.IDLE).batteryLevel(20).build());
+        return data;
+    }
+
+    private record DroneBuilder(Drone drone) {
+        public Drone build() {
+            return drone;
+        }
+
+        public DroneBuilder id(int id) {
+            drone.setId(id);
+            drone.setSerial(String.format("%dd", id));
+            return this;
+        }
+
+        public DroneBuilder model(DroneModel model) {
+            drone.setModel(model);
+            return this;
+        }
+
+        public DroneBuilder batteryLevel(int batteryLevel) {
+            drone.setBatteryLevel(batteryLevel);
+            return this;
+        }
+
+        public DroneBuilder state(DroneState state) {
+            drone.setState(state);
+            return this;
+        }
     }
 }

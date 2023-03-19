@@ -10,12 +10,12 @@ import com.github.iryabov.droneservice.model.DroneRegistrationForm;
 import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.service.DroneService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -55,8 +55,8 @@ public class DroneServiceImpl implements DroneService {
     }
 
     @Override
-    public List<DroneBriefInfo> getAllByLowBattery() {
-        throw new UnsupportedOperationException();
+    public List<DroneBriefInfo> getAllWithLowBattery() {
+        return droneRepo.findAllByBatteryLevelLessThan(25).stream().map(this::toBriefInfo).collect(toList());
     }
 
     private Drone toEntity(DroneRegistrationForm form) {

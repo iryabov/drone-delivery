@@ -16,5 +16,5 @@ public interface DroneService {
     DroneDetailedInfo getDetailedInfo(int droneId);
     List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, LocalDateTime till);
     List<DroneBriefInfo> getAllByStateAndModel(DroneState state, DroneModel model);
-    List<DroneBriefInfo> getAllByLowBattery();
+    List<DroneBriefInfo> getAllWithLowBattery();
 }
