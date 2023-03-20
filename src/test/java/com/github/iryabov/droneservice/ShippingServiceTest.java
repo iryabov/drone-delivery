@@ -21,10 +21,12 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class ShippingServiceTest {
     @Autowired
     private ShippingService service;
@@ -37,7 +39,7 @@ public class ShippingServiceTest {
 
     @BeforeEach
     void setUp() {
-        given(this.droneClient.lookup(ArgumentMatchers.anyString())).willReturn(driver);
+        given(this.droneClient.lookup(anyString(), any())).willReturn(driver);
         droneRepo.saveAll(testData());
     }
 

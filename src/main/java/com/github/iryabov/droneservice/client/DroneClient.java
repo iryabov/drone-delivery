@@ -1,12 +1,13 @@
 package com.github.iryabov.droneservice.client;
 
+import com.github.iryabov.droneservice.entity.DroneModel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 public interface DroneClient {
 
-    Driver lookup(String droneSerial);
+    Driver lookup(String droneSerial, DroneModel model);
 
     interface Driver {
         void flyTo(Point location);
@@ -26,5 +27,10 @@ public interface DroneClient {
     @Getter
     class Point {
         private double lat, lon;
+
+        @Override
+        public String toString() {
+            return "(" + lat + ", " + lon + ")";
+        }
     }
 }

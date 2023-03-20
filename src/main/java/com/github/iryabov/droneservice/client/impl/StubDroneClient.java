@@ -5,6 +5,7 @@ import com.github.iryabov.droneservice.entity.DroneModel;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -29,12 +30,8 @@ public class StubDroneClient implements DroneClient {
     }
 
     @Override
-    public Driver lookup(String droneSerial) {
-        return fleet.get(droneSerial);
-    }
-
-    public void add(String serial, DroneModel model) {
-        DroneEmulator drone = new DroneEmulator(model.getFlySpeed(), model.getWeightCapacity(), model.getBatteryCapacity(), BASE);
-        fleet.put(serial, drone);
+    public Driver lookup(String droneSerial, DroneModel model) {
+        return fleet.compute(droneSerial, (s, d) -> Objects.requireNonNullElseGet(d,
+                () -> new DroneEmulator(model.getFlySpeed(), model.getWeightCapacity(), model.getBatteryCapacity(), BASE)));
     }
 }

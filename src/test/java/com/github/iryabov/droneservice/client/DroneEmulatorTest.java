@@ -17,12 +17,11 @@ public class DroneEmulatorTest {
     @BeforeEach
     void setUp() {
         client = new StubDroneClient();
-        client.add(STUB_DRONE, DroneModel.LIGHTWEIGHT);
     }
 
     @Test
     void simpleDelivery() {
-        var drone = client.lookup(STUB_DRONE);
+        var drone = client.lookup(STUB_DRONE, DroneModel.LIGHTWEIGHT);
         assertThat(drone.getBatteryLevel(), is(100));
         assertThat(drone.isOnBase(), is(true));
         assertThat(drone.hasLoad(), is(false));

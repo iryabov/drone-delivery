@@ -45,7 +45,7 @@ public class ShippingServiceImpl implements ShippingService {
     public int load(int droneId, PackageForm shippingPackage) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
 
-        DroneClient.Driver driver = droneClient.lookup(drone.getSerial());
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.load(calcTotalWeight(shippingPackage));
 
         drone.setState(DroneState.LOADING);
@@ -66,7 +66,7 @@ public class ShippingServiceImpl implements ShippingService {
     public void send(int droneId, DeliveryAddressForm destination) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
 
-        DroneClient.Driver driver = droneClient.lookup(drone.getSerial());
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.flyTo(new DroneClient.Point(destination.getLatitude(), destination.getLongitude()));
 
         drone.setState(DroneState.DELIVERING);
@@ -80,7 +80,7 @@ public class ShippingServiceImpl implements ShippingService {
     public void returnBack(int droneId) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
 
-        DroneClient.Driver driver = droneClient.lookup(drone.getSerial());
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.flyToBase();
 
         drone.setState(DroneState.RETURNING);
@@ -96,7 +96,7 @@ public class ShippingServiceImpl implements ShippingService {
     public void unload(int droneId) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
 
-        DroneClient.Driver driver = droneClient.lookup(drone.getSerial());
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.unload();
 
         switch (drone.getState()) {
