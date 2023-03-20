@@ -14,7 +14,7 @@ public class ShippingLog {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(name = "log_time")
+    @Column(name = "log_time", columnDefinition = "TIMESTAMP")
     private LocalDateTime logTime;
     @ManyToOne
     @JoinColumn(name = "drone_id")

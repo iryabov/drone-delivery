@@ -1,5 +1,6 @@
 package com.github.iryabov.droneservice.service;
 
+import com.github.iryabov.droneservice.entity.DroneEvent;
 import com.github.iryabov.droneservice.entity.DroneModel;
 import com.github.iryabov.droneservice.entity.DroneState;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
@@ -14,7 +15,7 @@ public interface DroneService {
     int create(DroneRegistrationForm registrationForm);
     void delete(int droneId);
     DroneDetailedInfo getDetailedInfo(int droneId);
-    List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, LocalDateTime till);
+    List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, LocalDateTime till, DroneEvent event);
     List<DroneBriefInfo> getAllByStateAndModel(DroneState state, DroneModel model);
     List<DroneBriefInfo> getAllWithLowBattery();
 }

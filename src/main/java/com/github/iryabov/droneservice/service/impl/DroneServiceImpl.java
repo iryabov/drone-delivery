@@ -1,13 +1,12 @@
 package com.github.iryabov.droneservice.service.impl;
 
-import com.github.iryabov.droneservice.entity.Drone;
-import com.github.iryabov.droneservice.entity.DroneModel;
-import com.github.iryabov.droneservice.entity.DroneState;
+import com.github.iryabov.droneservice.entity.*;
 import com.github.iryabov.droneservice.mapper.DroneMapper;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneDetailedInfo;
 import com.github.iryabov.droneservice.model.DroneLogInfo;
 import com.github.iryabov.droneservice.model.DroneRegistrationForm;
+import com.github.iryabov.droneservice.repository.DroneLogRepository;
 import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.service.DroneService;
 import lombok.AllArgsConstructor;
@@ -23,6 +22,7 @@ import static java.util.stream.Collectors.toList;
 @AllArgsConstructor
 public class DroneServiceImpl implements DroneService {
     private DroneRepository droneRepo;
+    private DroneLogRepository droneLogRepo;
     private DroneMapper droneMapper;
 
     @Override
@@ -43,8 +43,14 @@ public class DroneServiceImpl implements DroneService {
     }
 
     @Override
-    public List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, LocalDateTime till) {
-        throw new UnsupportedOperationException();
+    public List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, LocalDateTime till, DroneEvent event) {
+        List<DroneLogInfo> logs = droneLogRepo.findAllByDroneIdAndLogTimeBetweenAndEvent(droneId, from, till, event).stream()
+                .map(droneMapper::toDroneLogInfo)
+                .collect(toList());
+        for (int i = 1; i < logs.size(); i++) {
+            logs.get(i).setOldValue(logs.get(i - 1).getNewValue());
+        }
+        return logs;
     }
 
     @Override

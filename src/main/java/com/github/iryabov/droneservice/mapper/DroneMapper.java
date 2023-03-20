@@ -1,8 +1,10 @@
 package com.github.iryabov.droneservice.mapper;
 
 import com.github.iryabov.droneservice.entity.Drone;
+import com.github.iryabov.droneservice.entity.DroneLog;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneDetailedInfo;
+import com.github.iryabov.droneservice.model.DroneLogInfo;
 import com.github.iryabov.droneservice.model.DroneRegistrationForm;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +35,14 @@ public class DroneMapper {
         info.setName(drone.getModel() + "-" + drone.getSerial());
         info.setState(drone.getState());
         info.setBatteryLevel(drone.getBatteryLevel());
+        return info;
+    }
+
+    public DroneLogInfo toDroneLogInfo(DroneLog entity) {
+        DroneLogInfo info = new DroneLogInfo();
+        info.setTime(entity.getLogTime());
+        info.setEvent(entity.getEvent());
+        info.setNewValue(entity.getNewValue());
         return info;
     }
 }
