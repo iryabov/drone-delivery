@@ -12,7 +12,7 @@ public class PackageItem {
     @Id
     private Long id;
     @Column(name = "amount")
-    private Integer amount;
+    private Double amount;
     @ManyToOne
     @JoinColumn(name ="shipping_id")
     private Shipping shipping;

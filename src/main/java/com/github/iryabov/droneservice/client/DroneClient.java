@@ -10,7 +10,7 @@ public interface DroneClient {
 
     interface Driver {
         void flyTo(Point location);
-        void returnToBase();
+        void flyToBase();
         void unload();
         void load(double weight);
         int getBatteryLevel();

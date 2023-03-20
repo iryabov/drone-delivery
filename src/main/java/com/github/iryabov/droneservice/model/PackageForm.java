@@ -15,8 +15,8 @@ public class PackageForm {
     @NoArgsConstructor
     public static class Item {
         private Integer goodsId;
-        private Integer amount;
-        public Item(Integer goodsId, Integer amount) {
+        private Double amount;
+        public Item(Integer goodsId, Double amount) {
             this.goodsId = goodsId;
             this.amount = amount;
         }

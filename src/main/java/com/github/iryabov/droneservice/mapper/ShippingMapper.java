@@ -34,6 +34,7 @@ public class ShippingMapper {
             item.setAmount(entityItem.getAmount());
             packageInfo.getItems().add(item);
         }
+        packageInfo.setTotalWeight(calcTotalWeight(entityItems));
         return packageInfo;
     }
 
@@ -50,5 +51,9 @@ public class ShippingMapper {
         info.setTime(entity.getLogTime());
         info.setNewValue(entity.getNewValue());
         return info;
+    }
+
+    private double calcTotalWeight(List<PackageItem> items) {
+        return items.stream().map(PackageItem::getAmount).reduce(0.0, Double::sum);
     }
 }

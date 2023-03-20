@@ -47,7 +47,7 @@ public class DroneEmulatorTest {
         System.out.println("Package has delivered.");
 
         System.out.println("Returning to the base...");
-        drone.returnToBase();
+        drone.flyToBase();
         waitUntil(drone::isOnBase);
         assertThat(drone.isOnBase(), is(true));
         System.out.println("Returned.");

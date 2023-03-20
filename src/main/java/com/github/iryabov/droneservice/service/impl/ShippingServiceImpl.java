@@ -1,5 +1,6 @@
 package com.github.iryabov.droneservice.service.impl;
 
+import com.github.iryabov.droneservice.client.DroneClient;
 import com.github.iryabov.droneservice.entity.*;
 import com.github.iryabov.droneservice.mapper.DroneMapper;
 import com.github.iryabov.droneservice.mapper.ShippingMapper;
@@ -17,9 +18,11 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 @Service
+@Transactional
 @AllArgsConstructor
 public class ShippingServiceImpl implements ShippingService {
 
+    private DroneClient droneClient;
     private DroneRepository droneRepo;
     private ShippingRepository shippingRepo;
     private ShippingLogRepository shippingLogRepo;
@@ -39,48 +42,63 @@ public class ShippingServiceImpl implements ShippingService {
     }
 
     @Override
-    @Transactional
     public int load(int droneId, PackageForm shippingPackage) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
+
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial());
+        driver.load(calcTotalWeight(shippingPackage));
+
         drone.setState(DroneState.LOADING);
         Shipping shipping = new Shipping();
         shipping.setStatus(DeliveryStatus.PENDING);
         shipping.setItems(shippingMapper.toPackageItems(shippingPackage));
         shipping.setDestination(new Location());
-        shippingRepo.save(shipping);
-        drone.setShipping(shipping);
-        Drone updated = droneRepo.save(drone);
-        int shippingId = updated.getShipping().getId();
+        Shipping createdShipping = shippingRepo.save(shipping);
+        int shippingId = createdShipping.getId();
+        drone.setShipping(createdShipping);
+        droneRepo.save(drone);
+
         trackLog(shippingId, droneId, DeliveryStatus.PENDING);
         return shippingId;
     }
 
     @Override
-    @Transactional
     public void send(int droneId, DeliveryAddressForm destination) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
+
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial());
+        driver.flyTo(new DroneClient.Point(destination.getLatitude(), destination.getLongitude()));
+
         drone.setState(DroneState.DELIVERING);
         drone.getShipping().setStatus(DeliveryStatus.SHIPPED);
-        trackLog(drone.getShipping().getId(), droneId, DeliveryStatus.SHIPPED);
         droneRepo.save(drone);
+
+        trackLog(drone.getShipping().getId(), droneId, DeliveryStatus.SHIPPED);
     }
 
     @Override
-    @Transactional
     public void returnBack(int droneId) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
+
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial());
+        driver.flyToBase();
+
         drone.setState(DroneState.RETURNING);
         if (drone.getShipping().getStatus() == DeliveryStatus.SHIPPED) {
             drone.getShipping().setStatus(DeliveryStatus.CANCELED);
+
             trackLog(drone.getShipping().getId(), droneId, DeliveryStatus.CANCELED);
         }
         droneRepo.save(drone);
     }
 
     @Override
-    @Transactional
     public void unload(int droneId) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
+
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial());
+        driver.unload();
+
         switch (drone.getState()) {
             case DELIVERING -> {
                 drone.setState(DroneState.DELIVERED);
@@ -121,5 +139,9 @@ public class ShippingServiceImpl implements ShippingService {
         entity.setEvent(ShippingEvent.STATUS_CHANGE);
         entity.setNewValue(status.name());
         shippingLogRepo.save(entity);
+    }
+
+    private double calcTotalWeight(PackageForm shippingPackage) {
+        return shippingPackage.getItems().stream().map(PackageForm.Item::getAmount).reduce(0.0, Double::sum);
     }
 }

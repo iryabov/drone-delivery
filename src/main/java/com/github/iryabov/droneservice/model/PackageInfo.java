@@ -10,13 +10,14 @@ import java.util.List;
 @Setter
 public class PackageInfo {
     private List<PackageInfo.Item> items;
+    private Double totalWeight;
 
     @Getter
     @Setter
     @NoArgsConstructor
     public static class Item {
         private String goodsName;
-        private Integer amount;
+        private Double amount;
 
     }
 }

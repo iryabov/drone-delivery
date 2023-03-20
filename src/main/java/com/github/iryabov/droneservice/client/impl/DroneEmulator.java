@@ -35,7 +35,7 @@ public class DroneEmulator implements DroneClient.Driver {
     }
 
     @Override
-    public void returnToBase() {
+    public void flyToBase() {
         flyTo(base);
     }
 
