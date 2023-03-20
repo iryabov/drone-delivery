@@ -7,6 +7,7 @@ import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneRegistrationForm;
 import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.service.DroneService;
+import com.github.iryabov.droneservice.test.DroneBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,6 @@ public class DroneServiceTest {
     private DroneService service;
     @Autowired
     private DroneRepository repo;
-
-    public static DroneBuilder builder() {
-        return new DroneBuilder(new Drone());
-    }
 
     @BeforeEach
     void setUp() {
@@ -75,37 +72,11 @@ public class DroneServiceTest {
 
     private static List<Drone> getTestData() {
         List<Drone> data = new ArrayList<>();
-        data.add(builder().id(1).model(DroneModel.LIGHTWEIGHT).batteryLevel(100).state(DroneState.IDLE).build());
-        data.add(builder().id(2).model(DroneModel.MIDDLEWEIGHT).state(DroneState.LOADING).build());
-        data.add(builder().id(3).model(DroneModel.MIDDLEWEIGHT).state(DroneState.DELIVERING).batteryLevel(15).build());
-        data.add(builder().id(4).model(DroneModel.HEAVYWEIGHT).state(DroneState.IDLE).batteryLevel(20).build());
+        data.add(DroneBuilder.builder().id(1).model(DroneModel.LIGHTWEIGHT).batteryLevel(100).state(DroneState.IDLE).build());
+        data.add(DroneBuilder.builder().id(2).model(DroneModel.MIDDLEWEIGHT).state(DroneState.LOADING).build());
+        data.add(DroneBuilder.builder().id(3).model(DroneModel.MIDDLEWEIGHT).state(DroneState.DELIVERING).batteryLevel(15).build());
+        data.add(DroneBuilder.builder().id(4).model(DroneModel.HEAVYWEIGHT).state(DroneState.IDLE).batteryLevel(20).build());
         return data;
     }
 
-    private record DroneBuilder(Drone drone) {
-        public Drone build() {
-            return drone;
-        }
-
-        public DroneBuilder id(int id) {
-            drone.setId(id);
-            drone.setSerial(String.format("%dd", id));
-            return this;
-        }
-
-        public DroneBuilder model(DroneModel model) {
-            drone.setModel(model);
-            return this;
-        }
-
-        public DroneBuilder batteryLevel(int batteryLevel) {
-            drone.setBatteryLevel(batteryLevel);
-            return this;
-        }
-
-        public DroneBuilder state(DroneState state) {
-            drone.setState(state);
-            return this;
-        }
-    }
 }

@@ -24,7 +24,7 @@ public class Drone {
     @Enumerated(EnumType.STRING)
     @Column(name = "state_id")
     private DroneState state;
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "shipping_id")
     private Shipping shipping;
     @Column(name = "battery_level")

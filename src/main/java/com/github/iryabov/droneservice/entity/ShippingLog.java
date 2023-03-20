@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "shipping_log")
 public class ShippingLog {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @Column(name = "log_time")
     private LocalDateTime logTime;

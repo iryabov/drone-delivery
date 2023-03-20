@@ -1,14 +1,16 @@
 package com.github.iryabov.droneservice;
 
-import com.github.iryabov.droneservice.entity.DeliveryStatus;
-import com.github.iryabov.droneservice.entity.DroneState;
-import com.github.iryabov.droneservice.entity.ShippingEvent;
+import com.github.iryabov.droneservice.entity.*;
 import com.github.iryabov.droneservice.model.*;
+import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.service.ShippingService;
+import com.github.iryabov.droneservice.test.DroneBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +22,14 @@ import static org.hamcrest.Matchers.*;
 public class ShippingServiceTest {
     @Autowired
     private ShippingService service;
+
+    @Autowired
+    private DroneRepository droneRepo;
+
+    @BeforeEach
+    void setUp() {
+        droneRepo.saveAll(testData());
+    }
 
     @Test
     void simpleSuccessfulDelivery() {
@@ -39,6 +49,7 @@ public class ShippingServiceTest {
         assertThat(shipping.getDrone().getState(), is(DroneState.LOADING));
 
         //checking that the drone loaded
+        changeState(someDrone.getId(), DroneState.LOADED);
         drones = service.getDronesReadyForShipping();
         assertThat(drones.stream().map(DroneBriefInfo::getState).collect(toList()), everyItem(is(DroneState.LOADED)));
         assertThat(drones.stream().map(DroneBriefInfo::getId).findAny(), is(Optional.of(someDrone.getId())));
@@ -65,6 +76,7 @@ public class ShippingServiceTest {
         assertThat(shipping.getDrone().getState(), is(DroneState.RETURNING));
 
         //checking that the drone returned
+        changeState(someDrone.getId(), DroneState.IDLE);
         drones = service.getDronesReadyForLoading();
         assertThat(drones.size(), greaterThan(0));
         assertThat(drones.stream().map(DroneBriefInfo::getId).collect(toList()), hasItem(someDrone.getId()));
@@ -83,5 +95,17 @@ public class ShippingServiceTest {
         assertThat(logs.get(2).getEvent(), is(ShippingEvent.STATUS_CHANGE));
         assertThat(logs.get(2).getOldValue(), is(DeliveryStatus.SHIPPED.toString()));
         assertThat(logs.get(2).getNewValue(), is(DeliveryStatus.DELIVERED.toString()));
+    }
+
+    private void changeState(int droneId, DroneState state) {
+        var drone = droneRepo.findById(droneId).orElseThrow();
+        drone.setState(state);
+        droneRepo.save(drone);
+    }
+
+    private List<Drone> testData() {
+        List<Drone> drones = new ArrayList<>();
+        drones.add(DroneBuilder.builder().id(1).model(DroneModel.LIGHTWEIGHT).state(DroneState.IDLE).batteryLevel(100).build());
+        return drones;
     }
 }

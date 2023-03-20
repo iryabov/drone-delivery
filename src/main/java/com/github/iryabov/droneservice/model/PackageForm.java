@@ -14,12 +14,12 @@ public class PackageForm {
     @Setter
     @NoArgsConstructor
     public static class Item {
+        private Integer goodsId;
+        private Integer amount;
         public Item(Integer goodsId, Integer amount) {
             this.goodsId = goodsId;
             this.amount = amount;
         }
-        private Integer goodsId;
-        private Integer amount;
     }
 
 }

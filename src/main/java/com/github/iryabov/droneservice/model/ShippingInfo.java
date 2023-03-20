@@ -10,6 +10,6 @@ public class ShippingInfo {
     private Integer id;
     private DeliveryStatus deliveryStatus;
     private DeliveryAddressForm destination;
-    private PackageForm packageInfo;
+    private PackageInfo packageInfo;
     private DroneBriefInfo drone;
 }

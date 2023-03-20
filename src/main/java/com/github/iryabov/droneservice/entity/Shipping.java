@@ -12,6 +12,7 @@ import java.util.List;
 @Table(name = "shipping")
 public class Shipping {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     @Embedded
     @AttributeOverrides({
@@ -24,6 +25,8 @@ public class Shipping {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_id")
     private DeliveryStatus status;
-    @OneToMany(mappedBy = "shipping")
+    @OneToMany(mappedBy = "shipping", fetch = FetchType.EAGER)
     private List<PackageItem> items;
+    @OneToOne(mappedBy = "shipping")
+    private Drone drone;
 }

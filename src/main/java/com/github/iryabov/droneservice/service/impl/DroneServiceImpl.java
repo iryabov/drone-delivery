@@ -3,6 +3,7 @@ package com.github.iryabov.droneservice.service.impl;
 import com.github.iryabov.droneservice.entity.Drone;
 import com.github.iryabov.droneservice.entity.DroneModel;
 import com.github.iryabov.droneservice.entity.DroneState;
+import com.github.iryabov.droneservice.mapper.DroneMapper;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneDetailedInfo;
 import com.github.iryabov.droneservice.model.DroneLogInfo;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -23,10 +23,11 @@ import static java.util.stream.Collectors.toList;
 @AllArgsConstructor
 public class DroneServiceImpl implements DroneService {
     private DroneRepository droneRepo;
+    private DroneMapper droneMapper;
 
     @Override
     public int create(DroneRegistrationForm registrationForm) {
-        Drone created = droneRepo.save(toEntity(registrationForm));
+        Drone created = droneRepo.save(droneMapper.toEntity(registrationForm));
         return created.getId();
     }
 
@@ -38,7 +39,7 @@ public class DroneServiceImpl implements DroneService {
     @Override
     public DroneDetailedInfo getDetailedInfo(int droneId) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
-        return toDetailedInfo(drone);
+        return droneMapper.toDetailedInfo(drone);
     }
 
     @Override
@@ -51,38 +52,12 @@ public class DroneServiceImpl implements DroneService {
         Drone criteria = new Drone();
         criteria.setState(state);
         criteria.setModel(model);
-        return droneRepo.findAll(Example.of(criteria)).stream().map(this::toBriefInfo).collect(toList());
+        return droneRepo.findAll(Example.of(criteria)).stream().map(droneMapper::toBriefInfo).collect(toList());
     }
 
     @Override
     public List<DroneBriefInfo> getAllWithLowBattery() {
-        return droneRepo.findAllByBatteryLevelLessThan(25).stream().map(this::toBriefInfo).collect(toList());
+        return droneRepo.findAllByBatteryLevelLessThan(25).stream().map(droneMapper::toBriefInfo).collect(toList());
     }
 
-    private Drone toEntity(DroneRegistrationForm form) {
-        Drone entity = new Drone();
-        entity.setSerial(form.getSerial());
-        entity.setModel(form.getModel());
-        return entity;
-    }
-
-    private DroneDetailedInfo toDetailedInfo(Drone drone) {
-        DroneDetailedInfo info = new DroneDetailedInfo();
-        info.setId(drone.getId());
-        info.setSerial(drone.getSerial());
-        info.setDroneModel(drone.getModel());
-        info.setName(drone.getModel() + "-" + drone.getSerial());
-        info.setState(drone.getState());
-        info.setBatteryLevel(drone.getBatteryLevel());
-        return info;
-    }
-
-    private DroneBriefInfo toBriefInfo(Drone drone) {
-        DroneBriefInfo info = new DroneBriefInfo();
-        info.setId(drone.getId());
-        info.setName(drone.getModel() + "-" + drone.getSerial());
-        info.setState(drone.getState());
-        info.setBatteryLevel(drone.getBatteryLevel());
-        return info;
-    }
 }
