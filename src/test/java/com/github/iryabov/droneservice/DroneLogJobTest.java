@@ -78,24 +78,26 @@ public class DroneLogJobTest {
     }
 
     @Test
-    void loadingJob() {
-        when(driver.getLoadingPercentage()).thenReturn(100, 0, 50, 100);
-        job.loadingLog();
+    void stateChangedLog() {
+        when(driver.getLoadingPercentage()).thenReturn(50, 100);
+        when(driver.isOnBase()).thenReturn(false, true);
+        job.stateChangedLog();
 
         var criteria = new DroneLog();
         criteria.setEvent(DroneEvent.STATE_CHANGE);
         List<DroneLog> logs = droneLogRepo.findAll(Example.of(criteria));
         assertThat(logs.size(), is(2));
         assertThat(logs.stream().map(DroneLog::getLogTime).collect(toList()), everyItem(lessThan(LocalDateTime.now())));
-        assertThat(logs.stream().map(DroneLog::getNewValue).collect(toList()), everyItem(is(DroneState.LOADED.name())));
+        assertThat(logs.get(0).getNewValue(), is(DroneState.LOADED.name()));
+        assertThat(logs.get(1).getNewValue(), is(DroneState.IDLE.name()));
     }
 
     private static List<Drone> getTestData() {
         List<Drone> data = new ArrayList<>();
         data.add(DroneBuilder.builder().serial("1").model(DroneModel.LIGHTWEIGHT).state(DroneState.LOADING).batteryLevel(100).build());
         data.add(DroneBuilder.builder().serial("2").model(DroneModel.LIGHTWEIGHT).state(DroneState.LOADING).batteryLevel(100).build());
-        data.add(DroneBuilder.builder().serial("3").model(DroneModel.LIGHTWEIGHT).state(DroneState.LOADING).batteryLevel(100).build());
-        data.add(DroneBuilder.builder().serial("4").model(DroneModel.LIGHTWEIGHT).state(DroneState.LOADING).batteryLevel(100).build());
+        data.add(DroneBuilder.builder().serial("3").model(DroneModel.LIGHTWEIGHT).state(DroneState.RETURNING).batteryLevel(100).build());
+        data.add(DroneBuilder.builder().serial("4").model(DroneModel.LIGHTWEIGHT).state(DroneState.RETURNING).batteryLevel(100).build());
         return data;
     }
 }

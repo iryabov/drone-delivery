@@ -38,14 +38,31 @@ public class DroneLogJob {
         log(droneRepo.findAll(), DroneEvent.LOCATION_CHANGE, DroneClient.Driver::getLocation);
     }
 
-    @Scheduled(fixedDelayString = "${drone.logs.loading.fixed_delay}",
-            initialDelayString = "${drone.logs.loading.initial_delay}")
-    public void loadingLog() {
+    @Scheduled(fixedDelayString = "${drone.logs.state_changed.fixed_delay}",
+            initialDelayString = "${drone.logs.state_changed.initial_delay}")
+    public void stateChangedLog() {
+        loadingLog();
+        returningLog();
+    }
+
+    private void loadingLog() {
         Drone criteria = new Drone();
         criteria.setState(DroneState.LOADING);
         log(droneRepo.findAll(Example.of(criteria)), DroneEvent.STATE_CHANGE, driver -> {
             if (driver.getLoadingPercentage() == 100) {
                 return DroneState.LOADED;
+            } else {
+                return null;
+            }
+        });
+    }
+
+    private void returningLog() {
+        Drone criteria = new Drone();
+        criteria.setState(DroneState.RETURNING);
+        log(droneRepo.findAll(Example.of(criteria)), DroneEvent.STATE_CHANGE, driver -> {
+            if (driver.isOnBase()) {
+                return DroneState.IDLE;
             } else {
                 return null;
             }
