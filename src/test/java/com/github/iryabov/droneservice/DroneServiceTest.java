@@ -1,10 +1,10 @@
 package com.github.iryabov.droneservice;
 
 import com.github.iryabov.droneservice.entity.*;
+import com.github.iryabov.droneservice.exception.DroneDeliveryException;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneLogInfo;
 import com.github.iryabov.droneservice.model.DroneRegistrationForm;
-import com.github.iryabov.droneservice.model.MedicationForm;
 import com.github.iryabov.droneservice.repository.DroneLogRepository;
 import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.service.DroneService;
@@ -118,7 +118,7 @@ public class DroneServiceTest {
     }
 
     @Test
-    public void validations() {
+    public void validationsOnCreating() {
         //Not valid, because the serial isn't set
         assertThrows(ConstraintViolationException.class, () -> {
             service.create(DroneRegistrationForm.builder()
@@ -140,14 +140,22 @@ public class DroneServiceTest {
                     .model(DroneModel.LIGHTWEIGHT)
                     .build());
         });
+
+        //Not valid, because the serial is not unique
+        assertThrows(DroneDeliveryException.class, () -> {
+            service.create(DroneRegistrationForm.builder()
+                    .serial("01")
+                    .model(DroneModel.LIGHTWEIGHT)
+                    .build());
+        });
     }
 
     private static List<Drone> getTestData() {
         List<Drone> data = new ArrayList<>();
-        data.add(DroneBuilder.builder().id(1).model(DroneModel.LIGHTWEIGHT).batteryLevel(100).state(DroneState.IDLE).build());
-        data.add(DroneBuilder.builder().id(2).model(DroneModel.MIDDLEWEIGHT).state(DroneState.LOADING).build());
-        data.add(DroneBuilder.builder().id(3).model(DroneModel.MIDDLEWEIGHT).state(DroneState.DELIVERING).batteryLevel(15).build());
-        data.add(DroneBuilder.builder().id(4).model(DroneModel.HEAVYWEIGHT).state(DroneState.IDLE).batteryLevel(20).build());
+        data.add(DroneBuilder.builder().id(1).serial("01").model(DroneModel.LIGHTWEIGHT).batteryLevel(100).state(DroneState.IDLE).build());
+        data.add(DroneBuilder.builder().id(2).serial("02").model(DroneModel.MIDDLEWEIGHT).state(DroneState.LOADING).build());
+        data.add(DroneBuilder.builder().id(3).serial("03").model(DroneModel.MIDDLEWEIGHT).state(DroneState.DELIVERING).batteryLevel(15).build());
+        data.add(DroneBuilder.builder().id(4).serial("04").model(DroneModel.HEAVYWEIGHT).state(DroneState.IDLE).batteryLevel(20).build());
         return data;
     }
 

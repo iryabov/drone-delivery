@@ -1,6 +1,7 @@
 package com.github.iryabov.droneservice.service.impl;
 
 import com.github.iryabov.droneservice.entity.*;
+import com.github.iryabov.droneservice.exception.DroneDeliveryException;
 import com.github.iryabov.droneservice.mapper.DroneMapper;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneDetailedInfo;
@@ -31,6 +32,7 @@ public class DroneServiceImpl implements DroneService {
     @Override
     public int create(DroneRegistrationForm registrationForm) {
         validate(validator, registrationForm);
+        validateUniqueSerial(registrationForm.getSerial());
         Drone created = droneRepo.save(droneMapper.toEntity(registrationForm));
         return created.getId();
     }
@@ -70,4 +72,10 @@ public class DroneServiceImpl implements DroneService {
         return droneRepo.findAllByBatteryLevelLessThan(25).stream().map(droneMapper::toBriefInfo).collect(toList());
     }
 
+    private void validateUniqueSerial(String serial) {
+        Drone criteria = new Drone();
+        criteria.setSerial(serial);
+        if (droneRepo.findOne(Example.of(criteria)).isPresent())
+            throw new DroneDeliveryException(String.format("Drone with serial %s already registered", serial));
+    }
 }

@@ -25,7 +25,6 @@ public class DroneBuilder {
 
     public DroneBuilder id(int id) {
         drone.setId(id);
-        drone.setSerial(String.format("%02d", id));
         return this;
     }
 

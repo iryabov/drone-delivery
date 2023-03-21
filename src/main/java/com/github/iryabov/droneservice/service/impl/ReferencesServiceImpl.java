@@ -6,14 +6,11 @@ import com.github.iryabov.droneservice.model.MedicationForm;
 import com.github.iryabov.droneservice.repository.MedicationRepository;
 import com.github.iryabov.droneservice.service.ReferencesService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 
 import static com.github.iryabov.droneservice.util.ValidateUtil.validate;
 import static java.util.stream.Collectors.toList;
