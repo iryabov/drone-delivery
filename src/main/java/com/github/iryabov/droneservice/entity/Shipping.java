@@ -25,7 +25,7 @@ public class Shipping {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_id")
     private DeliveryStatus status;
-    @OneToMany(mappedBy = "shipping", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "shipping", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<PackageItem> items;
     @OneToOne(mappedBy = "shipping")
     private Drone drone;

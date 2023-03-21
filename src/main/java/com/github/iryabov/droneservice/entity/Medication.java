@@ -1,9 +1,6 @@
 package com.github.iryabov.droneservice.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +10,7 @@ import lombok.Setter;
 @Table(name = "medication")
 public class Medication {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private Integer id;
     @Column(name = "name")
@@ -20,5 +18,5 @@ public class Medication {
     @Column(name = "code")
     private String code;
     @Column(name = "weight")
-    private Integer weight;
+    private Double weight;
 }

@@ -12,7 +12,7 @@ import java.util.List;
 
 @Component
 public class ShippingMapper {
-    public List<PackageItem> toPackageItems(PackageForm form) {
+    public List<PackageItem> toPackageItems(PackageForm form, Shipping backlink) {
         List<PackageItem> entityItems = new ArrayList<>();
         for (PackageForm.Item formItem : form.getItems()) {
             PackageItem entityItem = new PackageItem();
@@ -20,6 +20,7 @@ public class ShippingMapper {
             goods.setId(formItem.getGoodsId());
             entityItem.setGoods(goods);
             entityItem.setAmount(formItem.getAmount());
+            entityItem.setShipping(backlink);
             entityItems.add(entityItem);
         }
         return entityItems;
@@ -54,6 +55,6 @@ public class ShippingMapper {
     }
 
     private double calcTotalWeight(List<PackageItem> items) {
-        return items.stream().map(PackageItem::getAmount).reduce(0.0, Double::sum);
+        return items.stream().map(i -> i.getGoods().getWeight() * i.getAmount()).reduce(0.0, Double::sum);
     }
 }

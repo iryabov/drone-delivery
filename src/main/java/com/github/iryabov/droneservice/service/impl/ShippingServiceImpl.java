@@ -6,6 +6,7 @@ import com.github.iryabov.droneservice.mapper.DroneMapper;
 import com.github.iryabov.droneservice.mapper.ShippingMapper;
 import com.github.iryabov.droneservice.model.*;
 import com.github.iryabov.droneservice.repository.DroneRepository;
+import com.github.iryabov.droneservice.repository.MedicationRepository;
 import com.github.iryabov.droneservice.repository.ShippingLogRepository;
 import com.github.iryabov.droneservice.repository.ShippingRepository;
 import com.github.iryabov.droneservice.service.ShippingService;
@@ -14,8 +15,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 @Transactional
@@ -26,6 +29,7 @@ public class ShippingServiceImpl implements ShippingService {
     private DroneRepository droneRepo;
     private ShippingRepository shippingRepo;
     private ShippingLogRepository shippingLogRepo;
+    private MedicationRepository medicationRepo;
     private DroneMapper droneMapper;
     private ShippingMapper shippingMapper;
 
@@ -45,15 +49,17 @@ public class ShippingServiceImpl implements ShippingService {
     public int load(int droneId, PackageForm shippingPackage) {
         Drone drone = droneRepo.findById(droneId).orElseThrow();
 
+        double totalWeight = calcTotalWeight(shippingPackage);
         DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
-        driver.load(calcTotalWeight(shippingPackage));
+        driver.load(totalWeight);
 
         drone.setState(DroneState.LOADING);
         Shipping shipping = new Shipping();
         shipping.setStatus(DeliveryStatus.PENDING);
-        shipping.setItems(shippingMapper.toPackageItems(shippingPackage));
+        shipping.setItems(shippingMapper.toPackageItems(shippingPackage, shipping));
         shipping.setDestination(new Location());
         Shipping createdShipping = shippingRepo.save(shipping);
+
         int shippingId = createdShipping.getId();
         drone.setShipping(createdShipping);
         droneRepo.save(drone);
@@ -142,6 +148,12 @@ public class ShippingServiceImpl implements ShippingService {
     }
 
     private double calcTotalWeight(PackageForm shippingPackage) {
-        return shippingPackage.getItems().stream().map(PackageForm.Item::getAmount).reduce(0.0, Double::sum);
+        List<Integer> goodsIds = shippingPackage.getItems().stream().map(PackageForm.Item::getGoodsId).collect(toList());
+        Map<Integer, Double> weights = medicationRepo.findAllById(goodsIds).stream().collect(toMap(Medication::getId, Medication::getWeight));
+        return shippingPackage.getItems().stream().map(i -> i.getAmount() * weights.get(i.getGoodsId())).reduce(0.0, Double::sum);
+    }
+
+    private double calcTotalWeight(List<PackageItem> items) {
+        return items.stream().map(i -> i.getGoods().getWeight() * i.getAmount()).reduce(0.0, Double::sum);
     }
 }

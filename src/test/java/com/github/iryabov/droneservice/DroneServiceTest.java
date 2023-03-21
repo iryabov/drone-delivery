@@ -34,7 +34,6 @@ public class DroneServiceTest {
     @BeforeEach
     void setUp() {
         droneRepo.saveAll(getTestData());
-        droneLogRepo.saveAll(getTestEventLogsData());
     }
 
     @Test
@@ -78,6 +77,8 @@ public class DroneServiceTest {
 
     @Test
     void getEventLogs() {
+        droneLogRepo.saveAll(getTestEventLogsData());
+
         var logs = service.getEventLogs(1,
                 LocalDateTime.of(2023, 3, 20, 15, 0),
                 LocalDateTime.of(2023, 3, 20, 16, 0),

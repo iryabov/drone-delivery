@@ -4,6 +4,7 @@ import com.github.iryabov.droneservice.client.DroneClient;
 import com.github.iryabov.droneservice.entity.*;
 import com.github.iryabov.droneservice.model.*;
 import com.github.iryabov.droneservice.repository.DroneRepository;
+import com.github.iryabov.droneservice.repository.MedicationRepository;
 import com.github.iryabov.droneservice.service.ShippingService;
 import com.github.iryabov.droneservice.test.DroneBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,8 @@ public class ShippingServiceTest {
     private ShippingService service;
     @Autowired
     private DroneRepository droneRepo;
+    @Autowired
+    private MedicationRepository medicationRepo;
     @MockBean
     private DroneClient droneClient;
     @Mock
@@ -41,6 +44,7 @@ public class ShippingServiceTest {
     void setUp() {
         given(this.droneClient.lookup(anyString(), any())).willReturn(driver);
         droneRepo.saveAll(testData());
+        medicationRepo.saveAll(testMedicationsData());
     }
 
     @Test
@@ -54,14 +58,15 @@ public class ShippingServiceTest {
         var someDrone = drones.get(0);
         var shippingId = service.load(someDrone.getId(), PackageForm.builder()
                 .items(List.of(
-                        new PackageForm.Item(1, 2.0),
-                        new PackageForm.Item(2, 1.0)))
+                        new PackageForm.Item(1, 8.0),
+                        new PackageForm.Item(2, 2.0)))
                 .build());
-        verify(driver).load(3.0);
+        verify(driver).load(0.7);
 
         var shipping = service.getShippingInfo(shippingId);
         assertThat(shipping.getDeliveryStatus(), is(DeliveryStatus.PENDING));
         assertThat(shipping.getDrone().getState(), is(DroneState.LOADING));
+        assertThat(shipping.getPackageInfo().getTotalWeight(), is(0.7));
 
         //Checking that the drone loaded
         changeStateForTest(someDrone.getId(), DroneState.LOADED);
@@ -128,5 +133,23 @@ public class ShippingServiceTest {
         List<Drone> drones = new ArrayList<>();
         drones.add(DroneBuilder.builder().id(1).serial("01").model(DroneModel.LIGHTWEIGHT).state(DroneState.IDLE).batteryLevel(100).build());
         return drones;
+    }
+
+    private List<Medication> testMedicationsData() {
+        List<Medication> medications = new ArrayList<>();
+        var pen = new Medication();
+        pen.setId(1);
+        pen.setName("Penicillins");
+        pen.setCode("PEN");
+        pen.setWeight(0.05);
+        medications.add(pen);
+
+        var pan = new Medication();
+        pan.setId(2);
+        pan.setName("Panadol");
+        pan.setCode("PAN");
+        pan.setWeight(0.15);
+        medications.add(pan);
+        return medications;
     }
 }
