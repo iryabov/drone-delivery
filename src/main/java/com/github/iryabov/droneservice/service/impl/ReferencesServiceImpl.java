@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Set;
 
+import static com.github.iryabov.droneservice.util.ValidateUtil.validate;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -37,14 +38,14 @@ public class ReferencesServiceImpl implements ReferencesService {
 
     @Override
     public int createMedication(MedicationForm form) {
-        validate(form);
+        validate(validator, form);
         Medication entity = medicationRepo.save(mapper.toEntity(null, form));
         return entity.getId();
     }
 
     @Override
     public void updateMedication(int id, MedicationForm form) {
-        validate(form);
+        validate(validator, form);
         medicationRepo.save(mapper.toEntity(id, form));
     }
 
@@ -53,10 +54,4 @@ public class ReferencesServiceImpl implements ReferencesService {
         medicationRepo.deleteById(id);
     }
 
-    private <T> void validate(T input) {
-        Set<ConstraintViolation<T>> violations = validator.validate(input);
-        if (!violations.isEmpty()) {
-            throw new ConstraintViolationException(violations);
-        }
-    }
 }

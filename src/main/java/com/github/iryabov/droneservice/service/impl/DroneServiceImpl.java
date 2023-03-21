@@ -9,6 +9,7 @@ import com.github.iryabov.droneservice.model.DroneRegistrationForm;
 import com.github.iryabov.droneservice.repository.DroneLogRepository;
 import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.service.DroneService;
+import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.github.iryabov.droneservice.util.ValidateUtil.validate;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -24,9 +26,11 @@ public class DroneServiceImpl implements DroneService {
     private DroneRepository droneRepo;
     private DroneLogRepository droneLogRepo;
     private DroneMapper droneMapper;
+    private Validator validator;
 
     @Override
     public int create(DroneRegistrationForm registrationForm) {
+        validate(validator, registrationForm);
         Drone created = droneRepo.save(droneMapper.toEntity(registrationForm));
         return created.getId();
     }

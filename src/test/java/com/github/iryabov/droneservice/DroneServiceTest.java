@@ -4,11 +4,13 @@ import com.github.iryabov.droneservice.entity.*;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneLogInfo;
 import com.github.iryabov.droneservice.model.DroneRegistrationForm;
+import com.github.iryabov.droneservice.model.MedicationForm;
 import com.github.iryabov.droneservice.repository.DroneLogRepository;
 import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.service.DroneService;
 import com.github.iryabov.droneservice.test.DroneBuilder;
 import com.github.iryabov.droneservice.test.DroneLogBuilder;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DroneServiceTest {
@@ -112,6 +115,31 @@ public class DroneServiceTest {
         assertThat(logs.get(0).getNewValue(), is(DroneState.LOADING.name()));
         assertThat(logs.get(1).getOldValue(), is(DroneState.LOADING.name()));
         assertThat(logs.get(1).getNewValue(), is(DroneState.LOADED.name()));
+    }
+
+    @Test
+    public void validations() {
+        //Not valid, because the serial isn't set
+        assertThrows(ConstraintViolationException.class, () -> {
+            service.create(DroneRegistrationForm.builder()
+                    .model(DroneModel.LIGHTWEIGHT)
+                    .build());
+        });
+
+        //Not valid, because the model isn't set
+        assertThrows(ConstraintViolationException.class, () -> {
+            service.create(DroneRegistrationForm.builder()
+                    .serial("AA-01")
+                    .build());
+        });
+
+        //Not valid, because the serial is too long
+        assertThrows(ConstraintViolationException.class, () -> {
+            service.create(DroneRegistrationForm.builder()
+                    .serial("QWERTYUIOPASDFGHJKLZXCVBNM1234567890QWERTYUIOPASDFGHJKLZXCVBNM1234567890QWERTYUIOPASDFGHJKLZXCVBNM1234567890")
+                    .model(DroneModel.LIGHTWEIGHT)
+                    .build());
+        });
     }
 
     private static List<Drone> getTestData() {
