@@ -19,8 +19,6 @@ public class Drone {
     @Enumerated(EnumType.STRING)
     @Column(name = "model_id")
     private DroneModel model;
-    @Column(name = "weight_limit")
-    private Double weightLimit;
     @Enumerated(EnumType.STRING)
     @Column(name = "state_id")
     private DroneState state;

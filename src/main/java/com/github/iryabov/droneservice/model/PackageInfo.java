@@ -17,7 +17,7 @@ public class PackageInfo {
     @NoArgsConstructor
     public static class Item {
         private String goodsName;
-        private Double amount;
+        private Integer quantity;
 
     }
 }

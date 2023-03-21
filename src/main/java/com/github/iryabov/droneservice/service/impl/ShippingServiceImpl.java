@@ -2,6 +2,7 @@ package com.github.iryabov.droneservice.service.impl;
 
 import com.github.iryabov.droneservice.client.DroneClient;
 import com.github.iryabov.droneservice.entity.*;
+import com.github.iryabov.droneservice.exception.DroneDeliveryException;
 import com.github.iryabov.droneservice.mapper.DroneMapper;
 import com.github.iryabov.droneservice.mapper.ShippingMapper;
 import com.github.iryabov.droneservice.model.*;
@@ -11,12 +12,14 @@ import com.github.iryabov.droneservice.repository.ShippingLogRepository;
 import com.github.iryabov.droneservice.repository.ShippingRepository;
 import com.github.iryabov.droneservice.service.ShippingService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
+import static com.github.iryabov.droneservice.util.ValidateUtil.validate;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -32,6 +35,7 @@ public class ShippingServiceImpl implements ShippingService {
     private MedicationRepository medicationRepo;
     private DroneMapper droneMapper;
     private ShippingMapper shippingMapper;
+    private Validator validator;
 
     @Override
     public List<DroneBriefInfo> getDronesReadyForLoading() {
@@ -47,9 +51,12 @@ public class ShippingServiceImpl implements ShippingService {
 
     @Override
     public int load(int droneId, PackageForm shippingPackage) {
-        Drone drone = droneRepo.findById(droneId).orElseThrow();
-
+        validate(validator, shippingPackage);
+        validateLowBattery(droneId);
         double totalWeight = calcTotalWeight(shippingPackage);
+        validatePackageWeight(droneId, totalWeight);
+
+        Drone drone = droneRepo.findById(droneId).orElseThrow();
         DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.load(totalWeight);
 
@@ -70,8 +77,10 @@ public class ShippingServiceImpl implements ShippingService {
 
     @Override
     public void send(int droneId, DeliveryAddressForm destination) {
-        Drone drone = droneRepo.findById(droneId).orElseThrow();
+        validate(validator, destination);
+        validateLowBattery(droneId);
 
+        Drone drone = droneRepo.findById(droneId).orElseThrow();
         DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.flyTo(new DroneClient.Point(destination.getLatitude(), destination.getLongitude()));
 
@@ -150,10 +159,21 @@ public class ShippingServiceImpl implements ShippingService {
     private double calcTotalWeight(PackageForm shippingPackage) {
         List<Integer> goodsIds = shippingPackage.getItems().stream().map(PackageForm.Item::getGoodsId).collect(toList());
         Map<Integer, Double> weights = medicationRepo.findAllById(goodsIds).stream().collect(toMap(Medication::getId, Medication::getWeight));
-        return shippingPackage.getItems().stream().map(i -> i.getAmount() * weights.get(i.getGoodsId())).reduce(0.0, Double::sum);
+        return shippingPackage.getItems().stream().map(i -> i.getQuantity() * weights.get(i.getGoodsId())).reduce(0.0, Double::sum);
     }
 
-    private double calcTotalWeight(List<PackageItem> items) {
-        return items.stream().map(i -> i.getGoods().getWeight() * i.getAmount()).reduce(0.0, Double::sum);
+    private void validatePackageWeight(int droneId, double packageWeight) {
+        Drone drone = droneRepo.findById(droneId).orElseThrow();
+        double weightCapacity = drone.getModel().getWeightCapacity();
+        if (weightCapacity < packageWeight)
+            throw new DroneDeliveryException(String.format("Weight exceeded by %d grams. " +
+                    "Please choose a more lifting drone", Math.round((packageWeight - weightCapacity) * 1000)));
+    }
+
+    private void validateLowBattery(int droneId) {
+        Drone drone = droneRepo.findById(droneId).orElseThrow();
+        if (drone.getBatteryLevel() < 25)
+            throw new DroneDeliveryException("Battery too low. " +
+                    "Please select another drone or wait until the battery is charged");
     }
 }

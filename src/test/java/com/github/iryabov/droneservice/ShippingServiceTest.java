@@ -2,11 +2,13 @@ package com.github.iryabov.droneservice;
 
 import com.github.iryabov.droneservice.client.DroneClient;
 import com.github.iryabov.droneservice.entity.*;
+import com.github.iryabov.droneservice.exception.DroneDeliveryException;
 import com.github.iryabov.droneservice.model.*;
 import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.repository.MedicationRepository;
 import com.github.iryabov.droneservice.service.ShippingService;
 import com.github.iryabov.droneservice.test.DroneBuilder;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -22,6 +24,7 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -58,15 +61,15 @@ public class ShippingServiceTest {
         var someDrone = drones.get(0);
         var shippingId = service.load(someDrone.getId(), PackageForm.builder()
                 .items(List.of(
-                        new PackageForm.Item(1, 8.0),
-                        new PackageForm.Item(2, 2.0)))
+                        new PackageForm.Item(1, 4),
+                        new PackageForm.Item(2, 2)))
                 .build());
-        verify(driver).load(0.7);
+        verify(driver).load(0.5);
 
         var shipping = service.getShippingInfo(shippingId);
         assertThat(shipping.getDeliveryStatus(), is(DeliveryStatus.PENDING));
         assertThat(shipping.getDrone().getState(), is(DroneState.LOADING));
-        assertThat(shipping.getPackageInfo().getTotalWeight(), is(0.7));
+        assertThat(shipping.getPackageInfo().getTotalWeight(), is(0.5));
 
         //Checking that the drone loaded
         changeStateForTest(someDrone.getId(), DroneState.LOADED);
@@ -123,6 +126,41 @@ public class ShippingServiceTest {
         assertThat(logs.get(2).getNewValue(), is(DeliveryStatus.DELIVERED.toString()));
     }
 
+    @Test
+    void validations() {
+        //Not valid, because the list of goods was not specified when loading
+        assertThrows(ConstraintViolationException.class, () -> {
+            service.load(1, PackageForm.builder()
+                    .items(new ArrayList<>())
+                    .build());
+        });
+
+        //Not valid, because the quantity of the goods in the package is not set
+        assertThrows(ConstraintViolationException.class, () -> {
+            service.load(1, PackageForm.builder()
+                    .items(List.of(
+                            new PackageForm.Item(1, null),
+                            new PackageForm.Item(1, 0)))
+                    .build());
+        });
+
+        //Not valid, because there was an overweight
+        assertThrows(DroneDeliveryException.class, () -> {
+            service.load(1, PackageForm.builder()
+                    .items(List.of(
+                            new PackageForm.Item(1, 10),
+                            new PackageForm.Item(1, 1)))
+                    .build());
+        });
+
+        //Not valid, because there was low battery
+        assertThrows(DroneDeliveryException.class, () -> {
+            service.load(2, PackageForm.builder()
+                    .items(List.of(new PackageForm.Item(1, 1)))
+                    .build());
+        });
+    }
+
     private void changeStateForTest(int droneId, DroneState state) {
         var drone = droneRepo.findById(droneId).orElseThrow();
         drone.setState(state);
@@ -132,6 +170,7 @@ public class ShippingServiceTest {
     private List<Drone> testData() {
         List<Drone> drones = new ArrayList<>();
         drones.add(DroneBuilder.builder().id(1).serial("01").model(DroneModel.LIGHTWEIGHT).state(DroneState.IDLE).batteryLevel(100).build());
+        drones.add(DroneBuilder.builder().id(2).serial("02").model(DroneModel.LIGHTWEIGHT).state(DroneState.IDLE).batteryLevel(20).build());
         return drones;
     }
 

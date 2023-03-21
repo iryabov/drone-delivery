@@ -19,7 +19,7 @@ public class ShippingMapper {
             Medication goods = new Medication();
             goods.setId(formItem.getGoodsId());
             entityItem.setGoods(goods);
-            entityItem.setAmount(formItem.getAmount());
+            entityItem.setQuantity(formItem.getQuantity());
             entityItem.setShipping(backlink);
             entityItems.add(entityItem);
         }
@@ -32,7 +32,7 @@ public class ShippingMapper {
         for (PackageItem entityItem : entityItems) {
             PackageInfo.Item item = new PackageInfo.Item();
             item.setGoodsName(entityItem.getGoods().getName());
-            item.setAmount(entityItem.getAmount());
+            item.setQuantity(entityItem.getQuantity());
             packageInfo.getItems().add(item);
         }
         packageInfo.setTotalWeight(calcTotalWeight(entityItems));
@@ -55,6 +55,6 @@ public class ShippingMapper {
     }
 
     private double calcTotalWeight(List<PackageItem> items) {
-        return items.stream().map(i -> i.getGoods().getWeight() * i.getAmount()).reduce(0.0, Double::sum);
+        return items.stream().map(i -> i.getGoods().getWeight() * i.getQuantity()).reduce(0.0, Double::sum);
     }
 }

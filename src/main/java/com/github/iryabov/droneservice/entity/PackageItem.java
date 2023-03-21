@@ -12,8 +12,8 @@ public class PackageItem {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(name = "amount", nullable = false)
-    private Double amount;
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
     @ManyToOne
     @JoinColumn(name ="shipping_id", nullable = false)
     private Shipping shipping;

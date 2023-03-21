@@ -1,5 +1,9 @@
 package com.github.iryabov.droneservice.model;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.util.List;
@@ -8,17 +12,22 @@ import java.util.List;
 @Setter
 @Builder
 public class PackageForm {
+    @NotEmpty(message = "Package items is required")
+    @Valid
     private List<Item> items;
 
     @Getter
     @Setter
     @NoArgsConstructor
     public static class Item {
+        @NotNull(message = "Goods is required")
         private Integer goodsId;
-        private Double amount;
-        public Item(Integer goodsId, Double amount) {
+        @NotNull(message = "Quantity is required")
+        @Positive(message = "Quantity must be greater than 0")
+        private Integer quantity;
+        public Item(Integer goodsId, Integer quantity) {
             this.goodsId = goodsId;
-            this.amount = amount;
+            this.quantity  = quantity;
         }
     }
 
