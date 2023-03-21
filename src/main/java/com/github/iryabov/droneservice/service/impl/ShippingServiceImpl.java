@@ -16,6 +16,7 @@ import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +53,7 @@ public class ShippingServiceImpl implements ShippingService {
     @Override
     public int load(int droneId, PackageForm shippingPackage) {
         validate(validator, shippingPackage);
+        validateRequiringState(droneId, DroneState.IDLE);
         validateLowBattery(droneId);
         double totalWeight = calcTotalWeight(shippingPackage);
         validatePackageWeight(droneId, totalWeight);
@@ -78,6 +80,7 @@ public class ShippingServiceImpl implements ShippingService {
     @Override
     public void send(int droneId, DeliveryAddressForm destination) {
         validate(validator, destination);
+        validateRequiringState(droneId, DroneState.LOADED);
         validateLowBattery(droneId);
 
         Drone drone = droneRepo.findById(droneId).orElseThrow();
@@ -93,13 +96,14 @@ public class ShippingServiceImpl implements ShippingService {
 
     @Override
     public void returnBack(int droneId) {
-        Drone drone = droneRepo.findById(droneId).orElseThrow();
+        validateRequiringState(droneId, DroneState.DELIVERING, DroneState.DELIVERED);
 
+        Drone drone = droneRepo.findById(droneId).orElseThrow();
         DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.flyToBase();
 
         drone.setState(DroneState.RETURNING);
-        if (drone.getShipping().getStatus() == DeliveryStatus.SHIPPED) {
+        if (drone.getShipping() != null && drone.getShipping().getStatus() == DeliveryStatus.SHIPPED) {
             drone.getShipping().setStatus(DeliveryStatus.CANCELED);
 
             trackLog(drone.getShipping().getId(), droneId, DeliveryStatus.CANCELED);
@@ -109,8 +113,9 @@ public class ShippingServiceImpl implements ShippingService {
 
     @Override
     public void unload(int droneId) {
-        Drone drone = droneRepo.findById(droneId).orElseThrow();
+        validateRequiringState(droneId, DroneState.LOADING, DroneState.LOADED, DroneState.DELIVERING);
 
+        Drone drone = droneRepo.findById(droneId).orElseThrow();
         DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.unload();
 
@@ -175,5 +180,15 @@ public class ShippingServiceImpl implements ShippingService {
         if (drone.getBatteryLevel() < 25)
             throw new DroneDeliveryException("Battery too low. " +
                     "Please select another drone or wait until the battery is charged");
+    }
+
+    private void validateRequiringState(int droneId, DroneState... mustBe) {
+        Drone drone = droneRepo.findById(droneId).orElseThrow();
+        DroneState curState = drone.getState();
+        if (!Arrays.asList(mustBe).contains(curState)) {
+            String mustBeStates = Arrays.stream(mustBe).map(DroneState::name).reduce((a, b) -> a + " or " + b).orElse("");
+            throw new DroneDeliveryException(String.format("Drone must be in state %s, but now it's in %s. " +
+                    "Please select another drone", mustBeStates, curState.name()));
+        }
     }
 }

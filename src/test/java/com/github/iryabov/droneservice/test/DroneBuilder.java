@@ -16,6 +16,10 @@ public class DroneBuilder {
     }
 
     public Drone build() {
+        if (drone.getModel() == null)
+            drone.setModel(DroneModel.LIGHTWEIGHT);
+        if (drone.getState() == null)
+            drone.setState(DroneState.IDLE);
         return drone;
     }
 
