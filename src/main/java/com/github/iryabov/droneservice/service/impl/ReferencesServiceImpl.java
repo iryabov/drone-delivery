@@ -6,10 +6,14 @@ import com.github.iryabov.droneservice.model.MedicationForm;
 import com.github.iryabov.droneservice.repository.MedicationRepository;
 import com.github.iryabov.droneservice.service.ReferencesService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 
@@ -19,6 +23,7 @@ import static java.util.stream.Collectors.toList;
 public class ReferencesServiceImpl implements ReferencesService {
     private MedicationRepository medicationRepo;
     private ReferencesMapper mapper;
+    private Validator validator;
 
     @Override
     public List<MedicationForm> getAllMedications() {
@@ -32,17 +37,26 @@ public class ReferencesServiceImpl implements ReferencesService {
 
     @Override
     public int createMedication(MedicationForm form) {
+        validate(form);
         Medication entity = medicationRepo.save(mapper.toEntity(null, form));
         return entity.getId();
     }
 
     @Override
     public void updateMedication(int id, MedicationForm form) {
+        validate(form);
         medicationRepo.save(mapper.toEntity(id, form));
     }
 
     @Override
     public void deleteMedication(int id) {
         medicationRepo.deleteById(id);
+    }
+
+    private <T> void validate(T input) {
+        Set<ConstraintViolation<T>> violations = validator.validate(input);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
     }
 }
