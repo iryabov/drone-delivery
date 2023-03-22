@@ -19,4 +19,7 @@ public class Medication {
     private String code;
     @Column(name = "weight")
     private Double weight;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id")
+    private Image image;
 }

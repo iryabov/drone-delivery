@@ -1,5 +1,6 @@
 package com.github.iryabov.droneservice.mapper;
 
+import com.github.iryabov.droneservice.entity.Image;
 import com.github.iryabov.droneservice.entity.Medication;
 import com.github.iryabov.droneservice.model.MedicationForm;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,9 @@ public class ReferencesMapper {
         form.setName(entity.getName());
         form.setCode(entity.getCode());
         form.setWeight(entity.getWeight());
+        if (entity.getImage() != null) {
+            form.setImageId(entity.getImage().getId());
+        }
         return form;
     }
 
@@ -21,6 +25,11 @@ public class ReferencesMapper {
         entity.setName(form.getName());
         entity.setCode(form.getCode());
         entity.setWeight(form.getWeight());
+        if (form.getImageId() != null) {
+            Image image = new Image();
+            image.setId(form.getImageId());
+            entity.setImage(image);
+        }
         return entity;
     }
 }

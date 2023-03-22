@@ -27,4 +27,6 @@ public class MedicationForm {
     @NotNull(message = "Weight is required")
     @Positive(message = "Weight must be greater than 0")
     private Double weight;
+    @Schema(description = "Identifier of image file in the image store", example = "1")
+    private Long imageId;
 }

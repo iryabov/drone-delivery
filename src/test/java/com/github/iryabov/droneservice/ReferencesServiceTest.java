@@ -22,7 +22,7 @@ public class ReferencesServiceTest {
     void crudMedication() {
         //Creating medicine
         int medicineId = service.createMedication(MedicationForm.builder()
-                .name("Penicillins")
+                .name("Penicillin")
                 .code("PEN")
                 .weight(0.05).build());
         assertThat(medicineId, greaterThan(0));
@@ -30,7 +30,7 @@ public class ReferencesServiceTest {
 
         //Reading medicine
         var medication = service.getOneMedication(medicineId);
-        assertThat(medication.getName(), is("Penicillins"));
+        assertThat(medication.getName(), is("Penicillin"));
         assertThat(medication.getCode(), is("PEN"));
         assertThat(medication.getWeight(), is(0.05));
 
