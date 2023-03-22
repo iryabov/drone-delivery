@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class ValidationError {
+public class ResponseError {
     private String message;
     private List<Field> errors;
 

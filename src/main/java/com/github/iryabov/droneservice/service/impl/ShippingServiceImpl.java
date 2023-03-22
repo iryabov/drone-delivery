@@ -14,9 +14,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.github.iryabov.droneservice.util.ValidateUtil.validate;
 import static java.util.stream.Collectors.toList;
@@ -85,6 +84,8 @@ public class ShippingServiceImpl implements ShippingService {
 
         Drone drone = droneRepo.findById(droneId).orElseThrow();
         drone.setState(DroneState.DELIVERING);
+        drone.getShipping().setDestination(new Location(destination.getLatitude(), destination.getLongitude()));
+        drone.getShipping().setDeliveryAddress(destination.getAddress());
         drone.getShipping().setStatus(DeliveryStatus.SHIPPED);
         droneRepo.save(drone);
 
@@ -176,8 +177,10 @@ public class ShippingServiceImpl implements ShippingService {
     }
 
     private double calcTotalWeight(PackageForm shippingPackage) {
-        List<Integer> goodsIds = shippingPackage.getItems().stream().map(PackageForm.Item::getGoodsId).collect(toList());
+        Set<Integer> goodsIds = shippingPackage.getItems().stream().map(PackageForm.Item::getGoodsId).collect(Collectors.toSet());
         Map<Integer, Double> weights = medicationRepo.findAllById(goodsIds).stream().collect(toMap(Medication::getId, Medication::getWeight));
+        if (weights.size() < goodsIds.size())
+            throw new NoSuchElementException();
         return shippingPackage.getItems().stream().map(i -> i.getQuantity() * weights.get(i.getGoodsId())).reduce(0.0, Double::sum);
     }
 

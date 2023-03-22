@@ -1,7 +1,7 @@
 package com.github.iryabov.droneservice;
 
 import com.github.iryabov.droneservice.model.MedicationForm;
-import com.github.iryabov.droneservice.model.ValidationError;
+import com.github.iryabov.droneservice.model.ResponseError;
 import com.github.iryabov.droneservice.service.ReferencesService;
 import com.github.iryabov.droneservice.model.ResponseId;
 import jakarta.validation.ConstraintViolationException;
@@ -12,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
@@ -38,7 +37,7 @@ public class ReferencesControllerTest {
     void create() {
         when(service.createMedication(any())).thenReturn(1);
         MedicationForm form = MedicationForm.builder().code("CODE").name("Medication").weight(0.1).build();
-        client.post().uri("/references/medications")
+        client.post().uri("/api/references/medications")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(form), MedicationForm.class)
                 .exchange()
@@ -49,7 +48,7 @@ public class ReferencesControllerTest {
     @Test
     void update() {
         MedicationForm form = MedicationForm.builder().code("CODE").name("Medication").weight(0.1).build();
-        client.put().uri("/references/medications/1")
+        client.put().uri("/api/references/medications/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(form), MedicationForm.class)
                 .exchange()
@@ -59,7 +58,7 @@ public class ReferencesControllerTest {
 
     @Test
     void delete() {
-        client.delete().uri("/references/medications/1")
+        client.delete().uri("/api/references/medications/1")
                 .exchange()
                 .expectStatus().isOk();
         verify(service).deleteMedication(1);
@@ -70,7 +69,7 @@ public class ReferencesControllerTest {
         var result = MedicationForm.builder().id(1).code("CODE").name("Medication").weight(0.1).build();
         //get all
         when(service.getAllMedications()).thenReturn(List.of(result));
-        client.get().uri("/references/medications")
+        client.get().uri("/api/references/medications")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -79,7 +78,7 @@ public class ReferencesControllerTest {
 
         //get by id
         when(service.getOneMedication(1)).thenReturn(result);
-        client.get().uri("/references/medications/1")
+        client.get().uri("/api/references/medications/1")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -94,12 +93,12 @@ public class ReferencesControllerTest {
         var violations = validator.validate(form);
 
         when(service.createMedication(form)).thenThrow(new ConstraintViolationException(violations));
-        var result = client.post().uri("/references/medications")
+        var result = client.post().uri("/api/references/medications")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(form), MedicationForm.class)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectBody(ValidationError.class)
+                .expectBody(ResponseError.class)
                 .returnResult();
         assertThat(result.getStatus(), is(HttpStatusCode.valueOf(400)));
         assertThat(result.getResponseBody(), notNullValue());

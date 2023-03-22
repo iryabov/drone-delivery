@@ -40,7 +40,7 @@ public class DroneDeliveryControllerTest {
     void create() {
         when(droneService.create(any())).thenReturn(1);
         DroneRegistrationForm form = DroneRegistrationForm.builder().serial("test").model(DroneModel.LIGHTWEIGHT).build();
-        client.post().uri("/drones")
+        client.post().uri("/api/drones")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(form), DroneRegistrationForm.class)
                 .exchange()
@@ -50,7 +50,7 @@ public class DroneDeliveryControllerTest {
 
     @Test
     void delete() {
-        client.delete().uri("/drones/{id}", 1)
+        client.delete().uri("/api/drones/{id}", 1)
                 .exchange()
                 .expectStatus().isOk();
         verify(droneService).delete(eq(1));
@@ -65,7 +65,7 @@ public class DroneDeliveryControllerTest {
 
         //get all by state and model
         when(droneService.getAllByStateAndModel(DroneState.IDLE, DroneModel.LIGHTWEIGHT)).thenReturn(List.of(drone));
-        client.get().uri("/drones?state={state}&model={model}", "IDLE", "LIGHTWEIGHT")
+        client.get().uri("/api/drones?state={state}&model={model}", "IDLE", "LIGHTWEIGHT")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(DroneBriefInfo.class)
@@ -75,7 +75,7 @@ public class DroneDeliveryControllerTest {
 
         //get all by model
         when(droneService.getAllByStateAndModel(null, DroneModel.LIGHTWEIGHT)).thenReturn(List.of(drone));
-        client.get().uri("/drones?model={model}", "LIGHTWEIGHT")
+        client.get().uri("/api/drones?model={model}", "LIGHTWEIGHT")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(DroneBriefInfo.class)
@@ -85,7 +85,7 @@ public class DroneDeliveryControllerTest {
 
         //get all by state
         when(droneService.getAllByStateAndModel(DroneState.IDLE, null)).thenReturn(List.of(drone));
-        client.get().uri("/drones?state={state}", "IDLE")
+        client.get().uri("/api/drones?state={state}", "IDLE")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(DroneBriefInfo.class)
@@ -102,7 +102,7 @@ public class DroneDeliveryControllerTest {
         detailedInfo.setState(DroneState.IDLE);
 
         when(droneService.getDetailedInfo(1)).thenReturn(detailedInfo);
-        client.get().uri("/drones/{id}", 1)
+        client.get().uri("/api/drones/{id}", 1)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(DroneDetailedInfo.class)
@@ -118,7 +118,7 @@ public class DroneDeliveryControllerTest {
         drone.setState(DroneState.RETURNING);
 
         when(droneService.getAllWithLowBattery()).thenReturn(List.of(drone));
-        client.get().uri("/drones/low_battery")
+        client.get().uri("/api/drones/low_battery")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(DroneBriefInfo.class)
@@ -139,7 +139,7 @@ public class DroneDeliveryControllerTest {
                 null,
                 DroneEvent.BATTERY_CHANGE)
         ).thenReturn(List.of(log));
-        client.get().uri("/drones/{id}/logs?from=2023-03-22T00:00:00&event=BATTERY_CHANGE", 1)
+        client.get().uri("/api/drones/{id}/logs?from=2023-03-22T00:00:00&event=BATTERY_CHANGE", 1)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(DroneLogInfo.class)
@@ -155,7 +155,7 @@ public class DroneDeliveryControllerTest {
         drone.setState(DroneState.IDLE);
 
         when(shippingService.getDronesReadyForLoading()).thenReturn(List.of(drone));
-        client.get().uri("/drones/ready_for_loading")
+        client.get().uri("/api/drones/ready_for_loading")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(DroneBriefInfo.class)
@@ -171,7 +171,7 @@ public class DroneDeliveryControllerTest {
         drone.setState(DroneState.LOADED);
 
         when(shippingService.getDronesReadyForShipping()).thenReturn(List.of(drone));
-        client.get().uri("/drones/ready_for_shipping")
+        client.get().uri("/api/drones/ready_for_shipping")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(DroneBriefInfo.class)
@@ -187,7 +187,7 @@ public class DroneDeliveryControllerTest {
                         new PackageForm.Item(2, 5))).build();
 
         when(shippingService.load(1, form)).thenReturn(10);
-        client.post().uri("/drones/{id}/load", 1)
+        client.post().uri("/api/drones/{id}/load", 1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(form), PackageForm.class)
                 .exchange()
@@ -201,7 +201,7 @@ public class DroneDeliveryControllerTest {
                 .address("Test address")
                 .latitude(-10.5)
                 .longitude(10.5).build();
-        client.post().uri("/drones/{id}/send", 1)
+        client.post().uri("/api/drones/{id}/send", 1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(form), DeliveryAddressForm.class)
                 .exchange()
@@ -211,7 +211,7 @@ public class DroneDeliveryControllerTest {
 
     @Test
     void returnBack() {
-        client.post().uri("/drones/{id}/return", 1)
+        client.post().uri("/api/drones/{id}/return", 1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk();
@@ -220,7 +220,7 @@ public class DroneDeliveryControllerTest {
 
     @Test
     void unload() {
-        client.post().uri("/drones/{id}/unload", 1)
+        client.post().uri("/api/drones/{id}/unload", 1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk();
@@ -233,7 +233,7 @@ public class DroneDeliveryControllerTest {
         shipping.setId(1);
 
         when(shippingService.getShippingInfo(1)).thenReturn(shipping);
-        client.get().uri("/drones/shipping/{id}", 1)
+        client.get().uri("/api/drones/shipping/{id}", 1)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(ShippingInfo.class)
@@ -249,7 +249,7 @@ public class DroneDeliveryControllerTest {
         log.setNewValue(DeliveryStatus.DELIVERED.name());
 
         when(shippingService.trackShipment(1)).thenReturn(List.of(log));
-        client.get().uri("/drones/shipping/{id}/track", 1)
+        client.get().uri("/api/drones/shipping/{id}/track", 1)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(ShippingLogInfo.class)
@@ -263,12 +263,12 @@ public class DroneDeliveryControllerTest {
                 .items(List.of(new PackageForm.Item(1, -1))).build();
 
         when(shippingService.load(1, form)).thenThrow(new DroneDeliveryException("Some validation message"));
-        var result = client.post().uri("/drones/{id}/load", 1)
+        var result = client.post().uri("/api/drones/{id}/load", 1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(form), PackageForm.class)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectBody(ValidationError.class)
+                .expectBody(ResponseError.class)
                 .returnResult();
         assertThat(result.getStatus(), is(HttpStatusCode.valueOf(400)));
         assertThat(result.getResponseBody(), notNullValue());
