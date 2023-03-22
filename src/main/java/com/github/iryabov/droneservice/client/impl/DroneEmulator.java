@@ -89,12 +89,13 @@ public class DroneEmulator implements DroneClient.Driver {
 
     private synchronized void move(int seconds) {
         if (getBatteryLevel() > 0 && !isReachedDestination()) {
-            var dLat = destination.getLat() - currentLocation.getLat();
-            var dLon = destination.getLon() - currentLocation.getLon();
-            var vLat = dLat > 0 ? 1 : -1;
-            var vLon = dLon > 0 ? 1 : -1;
-            var sLat = abs(dLat) > flySpeed * seconds ? vLat * flySpeed * seconds : dLat;
-            var sLon = abs(dLon) > flySpeed * seconds ? vLon * flySpeed * seconds : dLon;
+            double dLat = destination.getLat() - currentLocation.getLat();
+            double dLon = destination.getLon() - currentLocation.getLon();
+            double vLat = dLat > 0 ? 1 : -1;
+            double vLon = dLon > 0 ? 1 : -1;
+            double speed = flySpeed * seconds / 100;
+            double sLat = abs(dLat) > speed ? vLat * speed : dLat;
+            double sLon = abs(dLon) > speed ? vLon * speed : dLon;
             currentLocation = new DroneClient.Point(
                     currentLocation.getLat() + sLat,
                     currentLocation.getLon() + sLon);

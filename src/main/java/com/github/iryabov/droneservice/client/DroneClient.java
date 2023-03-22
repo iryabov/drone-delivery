@@ -30,7 +30,7 @@ public interface DroneClient {
 
         @Override
         public String toString() {
-            return "(" + lat + ", " + lon + ")";
+            return String.format("(%.2f, %.2f)", lat, lon);
         }
     }
 }

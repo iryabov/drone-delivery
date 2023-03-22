@@ -32,7 +32,7 @@ public class StubDroneClient implements DroneClient, InitializingBean {
                 DroneEmulator drone = entry.getValue();
                 drone.compute(1);
                 logger.debug("Drone " + entry.getKey()
-                        + " location (" + drone.getLocation().getLat() + "," + drone.getLocation().getLon() + ")"
+                        + " location " + drone.getLocation()
                         + ", battery " + drone.getBatteryLevel() + "%"
                         + ", loading " + drone.getLoadingPercentage() + "%"
                 );

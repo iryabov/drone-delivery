@@ -22,6 +22,6 @@ public class Location {
 
     @Override
     public String toString() {
-        return "(" + latitude + ", " + longitude + ")";
+        return String.format("(%.2f, %.2f)", latitude, longitude);
     }
 }

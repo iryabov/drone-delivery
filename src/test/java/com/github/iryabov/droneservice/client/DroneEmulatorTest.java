@@ -35,7 +35,7 @@ public class DroneEmulatorTest {
         System.out.println("Loaded.");
 
         System.out.println("Flying to the delivery address...");
-        drone.flyTo(new DroneClient.Point(100, 100));
+        drone.flyTo(new DroneClient.Point(1, -1));
         waitUntil(drone::isReachedDestination);
         assertThat(drone.isReachedDestination(), is(true));
         System.out.println("Arrived at destination.");
