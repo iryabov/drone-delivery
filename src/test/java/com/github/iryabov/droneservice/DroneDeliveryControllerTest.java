@@ -127,6 +127,27 @@ public class DroneDeliveryControllerTest {
     }
 
     @Test
+    void getEventLogs() {
+        DroneLogInfo log = new DroneLogInfo();
+        log.setTime(LocalDateTime.of(2023, 3, 22, 10, 20));
+        log.setEvent(DroneEvent.BATTERY_CHANGE);
+        log.setOldValue("100");
+        log.setNewValue("99");
+
+        when(droneService.getEventLogs(1,
+                LocalDateTime.of(2023, 3, 22, 0, 0),
+                null,
+                DroneEvent.BATTERY_CHANGE)
+        ).thenReturn(List.of(log));
+        client.get().uri("/drones/{id}/logs?from=2023-03-22T00:00:00&event=BATTERY_CHANGE", 1)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(DroneLogInfo.class)
+                .hasSize(1)
+                .contains(log);
+    }
+
+    @Test
     void getAllReadyForLoading() {
         var drone = new DroneBriefInfo();
         drone.setId(1);

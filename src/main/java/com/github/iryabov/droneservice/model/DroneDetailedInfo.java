@@ -8,10 +8,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@EqualsAndHashCode
 public class DroneDetailedInfo extends DroneBriefInfo {
     private String serial;
     private DroneModel droneModel;
-    private Integer weightLimit;
+    private Double weightLimit;
     private Location currentLocation;
 }

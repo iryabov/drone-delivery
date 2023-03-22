@@ -20,6 +20,8 @@ public class DroneBuilder {
             drone.setModel(DroneModel.LIGHTWEIGHT);
         if (drone.getState() == null)
             drone.setState(DroneState.IDLE);
+        if (drone.getBatteryLevel() == null)
+            drone.setBatteryLevel(100);
         return drone;
     }
 

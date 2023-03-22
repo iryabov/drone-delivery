@@ -49,7 +49,7 @@ public class DroneLogJobTest {
 
     @Test
     void batteryLevelJob() {
-        when(driver.getBatteryLevel()).thenReturn(100, 90, 80, 70);
+        when(driver.getBatteryLevel()).thenReturn(90, 80, 70, 60);
         job.batteryLevelLog();
 
         var criteria = new DroneLog();

@@ -2,6 +2,7 @@ package com.github.iryabov.droneservice.mapper;
 
 import com.github.iryabov.droneservice.entity.Drone;
 import com.github.iryabov.droneservice.entity.DroneLog;
+import com.github.iryabov.droneservice.entity.DroneState;
 import com.github.iryabov.droneservice.model.DroneBriefInfo;
 import com.github.iryabov.droneservice.model.DroneDetailedInfo;
 import com.github.iryabov.droneservice.model.DroneLogInfo;
@@ -24,6 +25,8 @@ public class DroneMapper {
         Drone entity = new Drone();
         entity.setSerial(form.getSerial());
         entity.setModel(form.getModel());
+        entity.setState(DroneState.IDLE);
+        entity.setBatteryLevel(100);
         return entity;
     }
 
@@ -35,6 +38,8 @@ public class DroneMapper {
         info.setName(drone.getModel() + "-" + drone.getSerial());
         info.setState(drone.getState());
         info.setBatteryLevel(drone.getBatteryLevel());
+        info.setCurrentLocation(drone.getLocation());
+        info.setWeightLimit(drone.getModel().getWeightCapacity());
         return info;
     }
 

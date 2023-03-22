@@ -35,8 +35,8 @@ public class DroneDeliveryController {
     @GetMapping("/{droneId}/logs")
     public List<DroneLogInfo> getEventLogs(@PathVariable int droneId,
                                            @RequestParam(name = "from") LocalDateTime from,
-                                           @RequestParam(name = "till") LocalDateTime till,
-                                           @RequestParam(name = "event", required = false) DroneEvent event) {
+                                           @RequestParam(name = "till", required = false) LocalDateTime till,
+                                           @RequestParam(name = "event") DroneEvent event) {
         return droneService.getEventLogs(droneId, from, till, event);
     }
     @GetMapping

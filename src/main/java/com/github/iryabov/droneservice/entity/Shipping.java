@@ -16,8 +16,8 @@ public class Shipping {
     private Integer id;
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "destination_lat", column = @Column(name = "latitude")),
-            @AttributeOverride(name = "destination_lon", column = @Column(name = "longitude"))
+            @AttributeOverride(name = "latitude", column = @Column(name = "destination_lat")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "destination_lon"))
     })
     private Location destination;
     @Column(name = "delivery_address")

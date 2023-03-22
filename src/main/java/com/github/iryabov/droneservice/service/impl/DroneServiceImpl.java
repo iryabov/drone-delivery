@@ -50,7 +50,11 @@ public class DroneServiceImpl implements DroneService {
 
     @Override
     public List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, LocalDateTime till, DroneEvent event) {
-        List<DroneLogInfo> logs = droneLogRepo.findAllByDroneIdAndLogTimeBetweenAndEvent(droneId, from, till, event).stream()
+        List<DroneLogInfo> logs = droneLogRepo.findAllByDroneIdAndLogTimeBetweenAndEvent(droneId,
+                        from,
+                        till != null ? till : LocalDateTime.now(),
+                        event)
+                .stream()
                 .map(droneMapper::toDroneLogInfo)
                 .collect(toList());
         for (int i = 1; i < logs.size(); i++) {

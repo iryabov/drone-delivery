@@ -43,6 +43,8 @@ public class ShippingMapper {
         ShippingInfo shippingInfo = new ShippingInfo();
         shippingInfo.setId(shipping.getId());
         shippingInfo.setDeliveryStatus(shipping.getStatus());
+        shippingInfo.setDestination(shipping.getDestination());
+        shippingInfo.setDeliveryAddress(shipping.getDeliveryAddress());
         return shippingInfo;
     }
 
