@@ -1,4 +1,4 @@
-package com.github.iryabov.droneservice.web;
+package com.github.iryabov.droneservice.model;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

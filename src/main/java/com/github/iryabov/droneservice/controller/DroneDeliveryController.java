@@ -6,7 +6,7 @@ import com.github.iryabov.droneservice.entity.DroneState;
 import com.github.iryabov.droneservice.model.*;
 import com.github.iryabov.droneservice.service.DroneService;
 import com.github.iryabov.droneservice.service.ShippingService;
-import com.github.iryabov.droneservice.web.ResponseId;
+import com.github.iryabov.droneservice.model.ResponseId;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

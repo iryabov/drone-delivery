@@ -2,7 +2,7 @@ package com.github.iryabov.droneservice.controller;
 
 import com.github.iryabov.droneservice.model.MedicationForm;
 import com.github.iryabov.droneservice.service.ReferencesService;
-import com.github.iryabov.droneservice.web.ResponseId;
+import com.github.iryabov.droneservice.model.ResponseId;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

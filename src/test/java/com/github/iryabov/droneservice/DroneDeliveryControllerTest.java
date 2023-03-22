@@ -1,14 +1,16 @@
 package com.github.iryabov.droneservice;
 
 import com.github.iryabov.droneservice.entity.*;
+import com.github.iryabov.droneservice.exception.DroneDeliveryException;
 import com.github.iryabov.droneservice.model.*;
 import com.github.iryabov.droneservice.service.DroneService;
 import com.github.iryabov.droneservice.service.ShippingService;
-import com.github.iryabov.droneservice.web.ResponseId;
+import com.github.iryabov.droneservice.model.ResponseId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
@@ -16,6 +18,9 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -229,5 +234,23 @@ public class DroneDeliveryControllerTest {
                 .expectBodyList(ShippingLogInfo.class)
                 .hasSize(1)
                 .contains(log);
+    }
+
+    @Test
+    void validationsHandling() {
+        PackageForm form = PackageForm.builder()
+                .items(List.of(new PackageForm.Item(1, -1))).build();
+
+        when(shippingService.load(1, form)).thenThrow(new DroneDeliveryException("Some validation message"));
+        var result = client.post().uri("/drones/{id}/load", 1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(form), PackageForm.class)
+                .exchange()
+                .expectStatus().is4xxClientError()
+                .expectBody(ValidationError.class)
+                .returnResult();
+        assertThat(result.getStatus(), is(HttpStatusCode.valueOf(400)));
+        assertThat(result.getResponseBody(), notNullValue());
+        assertThat(result.getResponseBody().getMessage(), is("Some validation message"));
     }
 }
