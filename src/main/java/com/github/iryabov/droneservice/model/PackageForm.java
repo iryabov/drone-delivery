@@ -11,6 +11,9 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
 public class PackageForm {
     @NotEmpty(message = "Package items is required")
     @Valid
@@ -19,6 +22,7 @@ public class PackageForm {
     @Getter
     @Setter
     @NoArgsConstructor
+    @EqualsAndHashCode
     public static class Item {
         @NotNull(message = "Goods is required")
         private Integer goodsId;

@@ -1,13 +1,14 @@
 package com.github.iryabov.droneservice.model;
 
 import jakarta.validation.constraints.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
 public class DeliveryAddressForm {
     private String address;
     @Min(value = -90, message = "Latitude cannot be less than -90")

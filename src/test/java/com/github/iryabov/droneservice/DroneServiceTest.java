@@ -42,7 +42,7 @@ public class DroneServiceTest {
     @Test
     void simpleCRUD() {
         int droneId = service.create(DroneRegistrationForm.builder()
-                .serial("01")
+                .serial("crud")
                 .model(DroneModel.LIGHTWEIGHT)
                 .build());
 
@@ -51,7 +51,7 @@ public class DroneServiceTest {
 
         var drone = service.getDetailedInfo(droneId);
         assertThat(drone.getId(), is(droneId));
-        assertThat(drone.getName(), is("LIGHTWEIGHT-01"));
+        assertThat(drone.getName(), is("LIGHTWEIGHT-crud"));
 
         service.delete(droneId);
         drones = service.getAllByStateAndModel(null, DroneModel.LIGHTWEIGHT);

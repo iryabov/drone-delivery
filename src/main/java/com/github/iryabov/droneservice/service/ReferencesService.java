@@ -1,6 +1,7 @@
 package com.github.iryabov.droneservice.service;
 
 import com.github.iryabov.droneservice.model.MedicationForm;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

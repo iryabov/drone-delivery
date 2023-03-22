@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class ReferencesMapper {
     public MedicationForm toMedicationForm(Medication entity) {
         MedicationForm form = MedicationForm.builder().build();
+        form.setId(entity.getId());
         form.setName(entity.getName());
         form.setCode(entity.getCode());
         form.setWeight(entity.getWeight());
