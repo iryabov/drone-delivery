@@ -189,7 +189,7 @@ curl -X 'GET' \
   -H 'accept: */*'
 ````
 
-In the response, all changes in the states of the drone in the last hour:
+In the response, all changes in the states of the drone for the last hour:
 ````json
 [
   {

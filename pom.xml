@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.github.iryabov</groupId>
-	<artifactId>drone-service</artifactId>
+	<artifactId>drone-delivery</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>drone-service</name>
-	<description>Drone fleet management service</description>
+	<name>drone-delivery</name>
+	<description>Drone fleet management and delivery service</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
