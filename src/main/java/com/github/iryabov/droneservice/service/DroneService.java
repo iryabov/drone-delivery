@@ -16,7 +16,7 @@ public interface DroneService {
     int create(DroneRegistrationForm registrationForm);
     void delete(int droneId);
     DroneDetailedInfo getDetailedInfo(int droneId);
-    List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, @Nullable LocalDateTime till, DroneEvent event);
+    List<DroneLogInfo> getEventLogs(int droneId, @Nullable LocalDateTime from, @Nullable LocalDateTime till, DroneEvent event);
     List<DroneBriefInfo> getAllByStateAndModel(@Nullable DroneState state, @Nullable DroneModel model);
     List<DroneBriefInfo> getAllWithLowBattery();
 }

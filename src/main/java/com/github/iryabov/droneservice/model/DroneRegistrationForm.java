@@ -18,6 +18,7 @@ public class DroneRegistrationForm {
     @NotBlank(message = "Serial is required")
     @Size(max = 100, message = "Serial cannot be longer than 100 characters")
     private String serial;
+    @Schema(description = "Drone's model", example = "LIGHTWEIGHT")
     @NotNull(message = "Model is required")
     private DroneModel model;
 }

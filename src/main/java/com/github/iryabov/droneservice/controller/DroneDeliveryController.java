@@ -45,9 +45,9 @@ public class DroneDeliveryController {
     @ApiResponse(responseCode = "200", description = "List of log records")
     @GetMapping("/{droneId}/logs")
     public List<DroneLogInfo> getEventLogs(@Parameter(description = "Identifier of drone") @PathVariable int droneId,
-                                           @Parameter(description = "Date and time from which logs should be found") @RequestParam(name = "from") LocalDateTime from,
-                                           @Parameter(description = "Date and time until which logs should be found") @RequestParam(name = "till", required = false) LocalDateTime till,
-                                           @Parameter(description = "Logs of what event you need to find") @RequestParam(name = "event") DroneEvent event) {
+                                           @Parameter(description = "Logs of what event you need to find") @RequestParam(name = "event") DroneEvent event,
+                                           @Parameter(description = "Date and time from which logs should be found") @RequestParam(name = "from", required = false) LocalDateTime from,
+                                           @Parameter(description = "Date and time until which logs should be found") @RequestParam(name = "till", required = false) LocalDateTime till) {
         return droneService.getEventLogs(droneId, from, till, event);
     }
     @Operation(summary = "Get all drones by state and model")

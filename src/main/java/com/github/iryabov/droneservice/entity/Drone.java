@@ -11,17 +11,17 @@ import lombok.Setter;
 public class Drone {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "serial", nullable = false)
+    @Column(name = "serial", nullable = false, unique = true, length = 100)
     private String serial;
     @Enumerated(EnumType.STRING)
-    @Column(name = "model_id", nullable = false)
+    @Column(name = "model_id", nullable = false, length = 30)
     private DroneModel model;
     @Enumerated(EnumType.STRING)
-    @Column(name = "state_id", nullable = false)
+    @Column(name = "state_id", nullable = false, length = 30)
     private DroneState state;
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shipping_id")
     private Shipping shipping;
     @Column(name = "battery_level", nullable = false)

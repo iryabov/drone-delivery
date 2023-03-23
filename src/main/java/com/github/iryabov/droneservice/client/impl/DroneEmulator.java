@@ -5,9 +5,10 @@ import com.github.iryabov.droneservice.client.DroneClient;
 import static java.lang.Math.abs;
 
 public class DroneEmulator implements DroneClient.Driver {
-    private static final double BATTERY_DISCHARGE_RATE = 20;
+    private static final double BATTERY_DISCHARGE_RATE = 10;
     private static final double BATTERY_CHARGE_RATE = 50;
-    private static final double LOADING_SPEED = 0.2;
+    private static final double LOADING_SPEED = 0.1;
+    public static final int ACCELERATION = 10;
     private final double flySpeed;
     private final double weightCapacity;
     private final double batteryCapacity;
@@ -93,7 +94,7 @@ public class DroneEmulator implements DroneClient.Driver {
             double dLon = destination.getLon() - currentLocation.getLon();
             double vLat = dLat > 0 ? 1 : -1;
             double vLon = dLon > 0 ? 1 : -1;
-            double speed = flySpeed * seconds / 100;
+            double speed = flySpeed * seconds / ACCELERATION;
             double sLat = abs(dLat) > speed ? vLat * speed : dLat;
             double sLon = abs(dLon) > speed ? vLon * speed : dLon;
             currentLocation = new DroneClient.Point(

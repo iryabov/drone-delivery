@@ -6,9 +6,11 @@ import com.github.iryabov.droneservice.exception.DroneDeliveryException;
 import com.github.iryabov.droneservice.model.*;
 import com.github.iryabov.droneservice.repository.DroneRepository;
 import com.github.iryabov.droneservice.repository.MedicationRepository;
+import com.github.iryabov.droneservice.repository.ShippingRepository;
 import com.github.iryabov.droneservice.service.ShippingService;
 import com.github.iryabov.droneservice.test.DroneBuilder;
 import jakarta.validation.ConstraintViolationException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -38,16 +40,29 @@ public class ShippingServiceTest {
     private DroneRepository droneRepo;
     @Autowired
     private MedicationRepository medicationRepo;
+    @Autowired
+    private ShippingRepository shippingRepo;
     @MockBean
     private DroneClient droneClient;
     @Mock
     private DroneClient.Driver driver;
 
+    private int testDroneId, testMedId1, testMedId2;
+
     @BeforeEach
     void setUp() {
         given(this.droneClient.lookup(anyString(), any())).willReturn(driver);
-        droneRepo.saveAll(testDroneData());
-        medicationRepo.saveAll(testMedicationsData());
+        testDroneId = droneRepo.save(testDroneData()).getId();
+        var medications = medicationRepo.saveAll(testMedicationsData());
+        testMedId1 = medications.get(0).getId();
+        testMedId2 = medications.get(1).getId();
+    }
+
+    @AfterEach
+    void tearDown() {
+        droneRepo.deleteAll();
+        shippingRepo.deleteAll();
+        medicationRepo.deleteAll();
     }
 
     @Test
@@ -61,8 +76,8 @@ public class ShippingServiceTest {
         var someDrone = drones.get(0);
         var shippingId = service.load(someDrone.getId(), PackageForm.builder()
                 .items(List.of(
-                        new PackageForm.Item(1, 4),
-                        new PackageForm.Item(2, 2)))
+                        new PackageForm.Item(testMedId1, 4),
+                        new PackageForm.Item(testMedId2, 2)))
                 .build());
         verify(driver).load(0.5);
 
@@ -130,14 +145,14 @@ public class ShippingServiceTest {
     void validationsOnLoad() {
         //Not valid, because the list of goods was not specified when loading
         assertThrows(ConstraintViolationException.class, () -> {
-            service.load(1, PackageForm.builder()
+            service.load(testDroneId, PackageForm.builder()
                     .items(new ArrayList<>())
                     .build());
         });
 
         //Not valid, because the quantity of the goods in the package is not set
         assertThrows(ConstraintViolationException.class, () -> {
-            service.load(1, PackageForm.builder()
+            service.load(testDroneId, PackageForm.builder()
                     .items(List.of(
                             new PackageForm.Item(1, null),
                             new PackageForm.Item(1, 0)))
@@ -146,10 +161,10 @@ public class ShippingServiceTest {
 
         //Not valid, because there was an overweight
         assertThrows(DroneDeliveryException.class, () -> {
-            service.load(1, PackageForm.builder()
+            service.load(testDroneId, PackageForm.builder()
                     .items(List.of(
-                            new PackageForm.Item(1, 10),
-                            new PackageForm.Item(1, 1)))
+                            new PackageForm.Item(testMedId1, 10),
+                            new PackageForm.Item(testMedId2, 5)))
                     .build());
         });
 
@@ -157,7 +172,7 @@ public class ShippingServiceTest {
         assertThrows(DroneDeliveryException.class, () -> {
             var someDrone = droneRepo.save(DroneBuilder.builder().batteryLevel(20).serial("lowbattery").state(DroneState.IDLE).build());
             service.load(someDrone.getId(), PackageForm.builder()
-                    .items(List.of(new PackageForm.Item(1, 1)))
+                    .items(List.of(new PackageForm.Item(testMedId1, 1)))
                     .build());
         });
 
@@ -165,7 +180,7 @@ public class ShippingServiceTest {
         assertThrows(DroneDeliveryException.class, () -> {
             var someDrone = droneRepo.save(DroneBuilder.builder().state(DroneState.RETURNING).serial("notIdle").build());
             service.load(someDrone.getId(), PackageForm.builder()
-                    .items(List.of(new PackageForm.Item(1, 1)))
+                    .items(List.of(new PackageForm.Item(testMedId1, 1)))
                     .build());
         });
     }
@@ -174,7 +189,7 @@ public class ShippingServiceTest {
     void validationsOnSend() {
         //Not valid, because the destination coordinates are incorrect
         assertThrows(ConstraintViolationException.class, () -> {
-            service.send(1, DeliveryAddressForm.builder()
+            service.send(testDroneId, DeliveryAddressForm.builder()
                     .latitude(-100)
                     .longitude(100)
                     .build());
@@ -194,7 +209,7 @@ public class ShippingServiceTest {
     void validationsOnReturning() {
         //Not valid, because the drone must be delivering or delivered before returning
         assertThrows(DroneDeliveryException.class, () -> {
-            service.returnBack(1);
+            service.returnBack(testDroneId);
         });
     }
 
@@ -202,7 +217,7 @@ public class ShippingServiceTest {
     void validationsOnUnloading() {
         //Not valid, because the drone must be delivering or loading or loaded before unloading
         assertThrows(DroneDeliveryException.class, () -> {
-            service.unload(1);
+            service.unload(testDroneId);
         });
     }
 
@@ -212,23 +227,19 @@ public class ShippingServiceTest {
         droneRepo.save(drone);
     }
 
-    private List<Drone> testDroneData() {
-        List<Drone> drones = new ArrayList<>();
-        drones.add(DroneBuilder.builder().id(1).serial("01").model(DroneModel.LIGHTWEIGHT).state(DroneState.IDLE).batteryLevel(100).build());
-        return drones;
+    private Drone testDroneData() {
+        return DroneBuilder.builder().serial("shipping").model(DroneModel.LIGHTWEIGHT).state(DroneState.IDLE).batteryLevel(100).build();
     }
 
     private List<Medication> testMedicationsData() {
         List<Medication> medications = new ArrayList<>();
         var pen = new Medication();
-        pen.setId(1);
         pen.setName("Penicillins");
         pen.setCode("PEN");
         pen.setWeight(0.05);
         medications.add(pen);
 
         var pan = new Medication();
-        pan.setId(2);
         pan.setName("Panadol");
         pan.setCode("PAN");
         pan.setWeight(0.15);

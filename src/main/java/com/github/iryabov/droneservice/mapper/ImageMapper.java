@@ -34,6 +34,6 @@ public class ImageMapper {
         model.setImageId(entity.getId());
         model.setName(entity.getName());
         model.setType(entity.getType());
-        model.setDownloadUrl("/download/" + entity.getId());
+        model.setDownloadUrl("/api/image/download/" + entity.getId());
     }
 }

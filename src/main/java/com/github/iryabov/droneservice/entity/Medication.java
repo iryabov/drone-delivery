@@ -10,14 +10,14 @@ import lombok.Setter;
 @Table(name = "medication")
 public class Medication {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
-    @Column(name = "code")
+    @Column(name = "code", nullable = false, unique = true)
     private String code;
-    @Column(name = "weight")
+    @Column(name = "weight", nullable = false)
     private Double weight;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id")

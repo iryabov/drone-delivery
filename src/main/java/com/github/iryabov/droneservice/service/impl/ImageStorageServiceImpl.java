@@ -6,6 +6,7 @@ import com.github.iryabov.droneservice.mapper.ImageMapper;
 import com.github.iryabov.droneservice.model.ImageData;
 import com.github.iryabov.droneservice.model.ImageMetaInfo;
 import com.github.iryabov.droneservice.repository.ImageDataRepository;
+import com.github.iryabov.droneservice.service.ImageStorageService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
@@ -21,7 +22,7 @@ import java.io.IOException;
 @Service
 @Transactional
 @AllArgsConstructor
-public class ImageStorageServiceImpl {
+public class ImageStorageServiceImpl implements ImageStorageService {
     private static final Integer RESIZE_WIDTH = 300;
     private ImageDataRepository repo;
     private ImageMapper mapper;

@@ -10,11 +10,13 @@ import lombok.Setter;
 @Table(name = "image")
 public class Image {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "name")
     private String name;
+    @Column(name = "type", nullable = false, length = 30)
     private String type;
     @Lob
-    @Column(name = "data", length = 1024*1024)
+    @Column(name = "data", nullable = false)
     private byte[] data;
 }

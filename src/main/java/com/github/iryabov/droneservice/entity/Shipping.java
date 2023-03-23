@@ -12,7 +12,7 @@ import java.util.List;
 @Table(name = "shipping")
 public class Shipping {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Embedded
     @AttributeOverrides({
@@ -23,7 +23,7 @@ public class Shipping {
     @Column(name = "delivery_address")
     private String deliveryAddress;
     @Enumerated(EnumType.STRING)
-    @Column(name = "status_id")
+    @Column(name = "status_id", length = 30)
     private DeliveryStatus status;
     @OneToMany(mappedBy = "shipping", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<PackageItem> items;

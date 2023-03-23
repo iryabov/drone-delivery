@@ -16,6 +16,8 @@ import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 
 import static com.github.iryabov.droneservice.util.ValidateUtil.validate;
@@ -51,7 +53,7 @@ public class DroneServiceImpl implements DroneService {
     @Override
     public List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, LocalDateTime till, DroneEvent event) {
         List<DroneLogInfo> logs = droneLogRepo.findAllByDroneIdAndLogTimeBetweenAndEvent(droneId,
-                        from,
+                        from != null ? from : LocalDateTime.now().minus(1, ChronoUnit.HOURS),
                         till != null ? till : LocalDateTime.now(),
                         event)
                 .stream()

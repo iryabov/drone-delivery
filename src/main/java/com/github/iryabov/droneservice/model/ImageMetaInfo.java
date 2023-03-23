@@ -14,6 +14,6 @@ public class ImageMetaInfo {
     private String name;
     @Schema(description = "Image format", example = "image/jpeg")
     private String type;
-    @Schema(description = "Relational link to download image", example = "/download/1")
+    @Schema(description = "Relational link to download image", example = "/api/image/download/1")
     private String downloadUrl;
 }

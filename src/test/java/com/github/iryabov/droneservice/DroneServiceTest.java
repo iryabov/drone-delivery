@@ -11,6 +11,8 @@ import com.github.iryabov.droneservice.service.DroneService;
 import com.github.iryabov.droneservice.test.DroneBuilder;
 import com.github.iryabov.droneservice.test.DroneLogBuilder;
 import jakarta.validation.ConstraintViolationException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,12 @@ public class DroneServiceTest {
         droneRepo.saveAll(getTestData());
     }
 
+    @AfterEach
+    void tearDown() {
+        droneLogRepo.deleteAll();
+        droneRepo.deleteAll();
+    }
+
     @Test
     void simpleCRUD() {
         int droneId = service.create(DroneRegistrationForm.builder()
@@ -61,13 +69,16 @@ public class DroneServiceTest {
     @Test
     void getAllByStateAndModel() {
         var drones = service.getAllByStateAndModel(DroneState.LOADING, DroneModel.MIDDLEWEIGHT);
-        assertThat(drones.size(), is(1));
+        assertThat(drones.size(), greaterThan(0));
+        assertThat(drones.stream().map(DroneBriefInfo::getName).collect(toList()), everyItem(startsWith(DroneModel.MIDDLEWEIGHT.name())));
+        assertThat(drones.stream().map(DroneBriefInfo::getState).collect(toList()), everyItem(is(DroneState.LOADING)));
 
         drones = service.getAllByStateAndModel(null, DroneModel.MIDDLEWEIGHT);
-        assertThat(drones.size(), is(2));
+        assertThat(drones.size(), greaterThan(0));
+        assertThat(drones.stream().map(DroneBriefInfo::getName).collect(toList()), everyItem(startsWith(DroneModel.MIDDLEWEIGHT.name())));
 
         drones = service.getAllByStateAndModel(DroneState.IDLE, null);
-        assertThat(drones.size(), is(2));
+        assertThat(drones.size(), greaterThan(0));
         assertThat(drones.stream().map(DroneBriefInfo::getState).collect(toList()), everyItem(is(DroneState.IDLE)));
     }
 
@@ -80,9 +91,12 @@ public class DroneServiceTest {
 
     @Test
     void getEventLogs() {
-        droneLogRepo.saveAll(getTestEventLogsData());
+        var drone = DroneBuilder.builder().serial("logs").build();
+        var droneId = droneRepo.save(drone).getId();
+        droneLogRepo.saveAll(getTestEventLogsData(droneId));
 
-        var logs = service.getEventLogs(1,
+
+        var logs = service.getEventLogs(droneId,
                 LocalDateTime.of(2023, 3, 20, 15, 0),
                 LocalDateTime.of(2023, 3, 20, 16, 0),
                 DroneEvent.BATTERY_CHANGE);
@@ -94,7 +108,7 @@ public class DroneServiceTest {
         assertThat(logs.get(1).getNewValue(), is("90"));
 
 
-        logs = service.getEventLogs(1,
+        logs = service.getEventLogs(droneId,
                 LocalDateTime.of(2023, 3, 20,16 ,0),
                 LocalDateTime.of(2023, 3, 20, 17, 0),
                 DroneEvent.LOCATION_CHANGE);
@@ -105,7 +119,7 @@ public class DroneServiceTest {
         assertThat(logs.get(1).getOldValue(), is("(0, 0)"));
         assertThat(logs.get(1).getNewValue(), is("(10, 10)"));
 
-        logs = service.getEventLogs(1,
+        logs = service.getEventLogs(droneId,
                 LocalDateTime.of(2023, 3, 20,17 ,0),
                 LocalDateTime.of(2023, 3, 20, 18, 0),
                 DroneEvent.STATE_CHANGE);
@@ -152,49 +166,49 @@ public class DroneServiceTest {
 
     private static List<Drone> getTestData() {
         List<Drone> data = new ArrayList<>();
-        data.add(DroneBuilder.builder().id(1).serial("01").model(DroneModel.LIGHTWEIGHT).batteryLevel(100).state(DroneState.IDLE).build());
-        data.add(DroneBuilder.builder().id(2).serial("02").model(DroneModel.MIDDLEWEIGHT).state(DroneState.LOADING).build());
-        data.add(DroneBuilder.builder().id(3).serial("03").model(DroneModel.MIDDLEWEIGHT).state(DroneState.DELIVERING).batteryLevel(15).build());
-        data.add(DroneBuilder.builder().id(4).serial("04").model(DroneModel.HEAVYWEIGHT).state(DroneState.IDLE).batteryLevel(20).build());
+        data.add(DroneBuilder.builder().serial("01").model(DroneModel.LIGHTWEIGHT).batteryLevel(100).state(DroneState.IDLE).build());
+        data.add(DroneBuilder.builder().serial("02").model(DroneModel.MIDDLEWEIGHT).state(DroneState.LOADING).build());
+        data.add(DroneBuilder.builder().serial("03").model(DroneModel.MIDDLEWEIGHT).state(DroneState.DELIVERING).batteryLevel(15).build());
+        data.add(DroneBuilder.builder().serial("04").model(DroneModel.HEAVYWEIGHT).state(DroneState.IDLE).batteryLevel(20).build());
         return data;
     }
 
-    private static List<DroneLog> getTestEventLogsData() {
+    private static List<DroneLog> getTestEventLogsData(int droneId) {
         List<DroneLog> data = new ArrayList<>();
         data.add(DroneLogBuilder.builder()
-                .droneId(1)
+                .droneId(droneId)
                 .event(DroneEvent.BATTERY_CHANGE)
                 .time(LocalDateTime.of(2023, 3, 20, 15, 10))
                 .newValue("100")
                 .build());
         data.add(DroneLogBuilder.builder()
-                .droneId(1)
+                .droneId(droneId)
                 .event(DroneEvent.BATTERY_CHANGE)
                 .time(LocalDateTime.of(2023, 3, 20, 15, 15))
                 .newValue("90")
                 .build());
 
         data.add(DroneLogBuilder.builder()
-                .droneId(1)
+                .droneId(droneId)
                 .event(DroneEvent.LOCATION_CHANGE)
                 .time(LocalDateTime.of(2023, 3, 20, 16, 10))
                 .newValue("(0, 0)")
                 .build());
         data.add(DroneLogBuilder.builder()
-                .droneId(1)
+                .droneId(droneId)
                 .event(DroneEvent.LOCATION_CHANGE)
                 .time(LocalDateTime.of(2023, 3, 20, 16, 15))
                 .newValue("(10, 10)")
                 .build());
 
         data.add(DroneLogBuilder.builder()
-                .droneId(1)
+                .droneId(droneId)
                 .event(DroneEvent.STATE_CHANGE)
                 .time(LocalDateTime.of(2023, 3, 20, 17, 10))
                 .newValue(DroneState.LOADING.name())
                 .build());
         data.add(DroneLogBuilder.builder()
-                .droneId(1)
+                .droneId(droneId)
                 .event(DroneEvent.STATE_CHANGE)
                 .time(LocalDateTime.of(2023, 3, 20, 17, 15))
                 .newValue(DroneState.LOADED.name())

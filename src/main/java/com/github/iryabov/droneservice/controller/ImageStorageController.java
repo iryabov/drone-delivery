@@ -2,7 +2,7 @@ package com.github.iryabov.droneservice.controller;
 
 import com.github.iryabov.droneservice.model.ImageData;
 import com.github.iryabov.droneservice.model.ImageMetaInfo;
-import com.github.iryabov.droneservice.service.impl.ImageStorageServiceImpl;
+import com.github.iryabov.droneservice.service.ImageStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,7 +20,7 @@ import java.io.IOException;
 @RequestMapping("/api/image")
 public class ImageStorageController {
 
-    private ImageStorageServiceImpl service;
+    private ImageStorageService service;
 
     @Operation(summary = "Upload and resize image to the image store")
     @ApiResponse(responseCode = "200", description = "The image was uploaded")
