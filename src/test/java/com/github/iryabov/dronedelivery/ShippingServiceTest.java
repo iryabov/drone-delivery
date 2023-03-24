@@ -57,6 +57,7 @@ public class ShippingServiceTest {
     void setUp() {
         given(this.droneClient.lookup(anyString(), any())).willReturn(driver);
         testDroneId = droneRepo.save(testDroneData()).getId();
+        shippingRepo.saveAll(testShippingData());
         var medications = medicationRepo.saveAll(testMedicationsData());
         testMedId1 = medications.get(0).getId();
         testMedId2 = medications.get(1).getId();
@@ -85,13 +86,13 @@ public class ShippingServiceTest {
                 .build());
         verify(driver).load(0.5);
 
-        var shipping = service.getShippingInfo(shippingId);
+        var shipping = service.getShippingDetailedInfo(someDrone.getId(), shippingId);
         assertThat(shipping.getDeliveryStatus(), is(DeliveryStatus.PENDING));
         assertThat(shipping.getDrone().getState(), is(DroneState.LOADING));
         assertThat(shipping.getPackageInfo().getTotalWeight(), is(0.5));
 
         //Checking that the drone loaded
-        changeStateForTest(someDrone.getId(), DroneState.LOADED);
+        waitingForStateChange(someDrone.getId(), DroneState.LOADED);
         drones = service.getDronesReadyForShipping();
         assertThat(drones.stream().map(DroneBriefInfo::getState).collect(toList()), everyItem(is(DroneState.LOADED)));
         assertThat(drones.stream().map(DroneBriefInfo::getId).findAny(), is(Optional.of(someDrone.getId())));
@@ -104,16 +105,16 @@ public class ShippingServiceTest {
                 .build());
         verify(driver).flyTo(new DroneClient.Point(42.67034, 23.35111));
 
-        shipping = service.getShippingInfo(shippingId);
+        shipping = service.getShippingDetailedInfo(someDrone.getId(), shippingId);
         assertThat(shipping.getDeliveryStatus(), is(DeliveryStatus.SHIPPED));
         assertThat(shipping.getDrone().getState(), is(DroneState.DELIVERING));
 
         //Passing the package to the customer
-        changeStateForTest(someDrone.getId(), DroneState.ARRIVED);
+        waitingForStateChange(someDrone.getId(), DroneState.ARRIVED);
         service.unload(someDrone.getId());
         verify(driver).unload();
 
-        shipping = service.getShippingInfo(shippingId);
+        shipping = service.getShippingDetailedInfo(someDrone.getId(), shippingId);
         assertThat(shipping.getDeliveryStatus(), is(DeliveryStatus.DELIVERED));
         assertThat(shipping.getDrone().getState(), is(DroneState.DELIVERED));
 
@@ -121,11 +122,11 @@ public class ShippingServiceTest {
         service.returnBack(someDrone.getId());
         verify(driver).flyToBase();
 
-        shipping = service.getShippingInfo(shippingId);
+        shipping = service.getShippingDetailedInfo(someDrone.getId(), shippingId);
         assertThat(shipping.getDrone().getState(), is(DroneState.RETURNING));
 
         //Checking that the drone returned
-        changeStateForTest(someDrone.getId(), DroneState.IDLE);
+        waitingForStateChange(someDrone.getId(), DroneState.IDLE);
         drones = service.getDronesReadyForLoading();
         assertThat(drones.size(), greaterThan(0));
         assertThat(drones.stream().map(DroneBriefInfo::getId).collect(toList()), hasItem(someDrone.getId()));
@@ -144,6 +145,23 @@ public class ShippingServiceTest {
         assertThat(logs.get(2).getEvent(), is(ShippingEvent.STATUS_CHANGE));
         assertThat(logs.get(2).getOldValue(), is(DeliveryStatus.SHIPPED.toString()));
         assertThat(logs.get(2).getNewValue(), is(DeliveryStatus.DELIVERED.toString()));
+    }
+
+    @Test
+    void readShipping() {
+        var list = service.getDroneDeliveries(testDroneId, null, null, null);
+        assertThat(list.stream().map(ShippingBriefInfo::getDeliveryStatus).collect(toList()), hasItems(
+                DeliveryStatus.PENDING,
+                DeliveryStatus.SHIPPED,
+                DeliveryStatus.DELIVERED,
+                DeliveryStatus.CANCELED));
+
+        list = service.getDroneDeliveries(testDroneId, DeliveryStatus.DELIVERED, null, null);
+        assertThat(list.stream().map(ShippingBriefInfo::getDeliveryStatus).collect(toList()), everyItem(is(
+                DeliveryStatus.DELIVERED)));
+
+        list = service.getDroneDeliveries(testDroneId, null, 0, 2);
+        assertThat(list.size(), not(greaterThan(2)));
     }
 
     @Test
@@ -226,7 +244,7 @@ public class ShippingServiceTest {
         });
     }
 
-    private void changeStateForTest(int droneId, DroneState state) {
+    private void waitingForStateChange(int droneId, DroneState state) {
         var drone = droneRepo.findById(droneId).orElseThrow();
         drone.setState(state);
         droneRepo.save(drone);
@@ -250,5 +268,40 @@ public class ShippingServiceTest {
         pan.setWeight(0.15);
         medications.add(pan);
         return medications;
+    }
+
+    private List<Shipping> testShippingData() {
+        Drone drone = new Drone();
+        drone.setId(testDroneId);
+        List<Shipping> list = new ArrayList<>();
+
+        var shipping = new Shipping();
+        shipping.setStatus(DeliveryStatus.PENDING);
+        shipping.setDrone(drone);
+        shipping.setDestination(new Location(1.0,-1.0));
+        shipping.setDeliveryAddress("Test address 1");
+        list.add(shipping);
+
+        shipping = new Shipping();
+        shipping.setStatus(DeliveryStatus.SHIPPED);
+        shipping.setDrone(drone);
+        shipping.setDestination(new Location(-1.0,1.0));
+        shipping.setDeliveryAddress("Test address 2");
+        list.add(shipping);
+
+        shipping = new Shipping();
+        shipping.setStatus(DeliveryStatus.DELIVERED);
+        shipping.setDrone(drone);
+        shipping.setDestination(new Location(1.0,1.0));
+        shipping.setDeliveryAddress("Test address 3");
+        list.add(shipping);
+
+        shipping = new Shipping();
+        shipping.setStatus(DeliveryStatus.CANCELED);
+        shipping.setDrone(drone);
+        shipping.setDestination(new Location(-1.0,-1.0));
+        shipping.setDeliveryAddress("Test address 4");
+        list.add(shipping);
+        return list;
     }
 }

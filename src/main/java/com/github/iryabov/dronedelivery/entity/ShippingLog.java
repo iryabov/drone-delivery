@@ -20,10 +20,6 @@ public class ShippingLog {
     @Column(name = "log_time", columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime logTime;
     @ManyToOne
-    @JoinColumn(name = "drone_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Drone drone;
-    @ManyToOne
     @JoinColumn(name = "shipping_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Shipping shipping;

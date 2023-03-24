@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @Component
@@ -31,7 +32,7 @@ public class DroneLogJob {
     public void batteryLevelLog() {
         log(droneRepo.findAll(),
                 DroneEvent.BATTERY_CHANGE,
-                DroneClient.Driver::getBatteryLevel,
+                (drone, driver) -> driver.getBatteryLevel(),
                 Drone::getBatteryLevel,
                 Drone::setBatteryLevel);
     }
@@ -41,7 +42,7 @@ public class DroneLogJob {
     public void locationLog() {
         log(droneRepo.findAll(),
                 DroneEvent.LOCATION_CHANGE,
-                driver -> new Location(driver.getLocation().getLat(), driver.getLocation().getLon()),
+                (drone, driver) -> new Location(driver.getLocation().getLat(), driver.getLocation().getLon()),
                 Drone::getLocation,
                 Drone::setLocation);
     }
@@ -50,6 +51,7 @@ public class DroneLogJob {
             initialDelayString = "${drone.logs.state_changed.initial_delay}")
     public void stateChangedLog() {
         loadingLog();
+        deliveringLog();
         returningLog();
     }
 
@@ -58,8 +60,8 @@ public class DroneLogJob {
         criteria.setState(DroneState.LOADING);
         log(droneRepo.findAll(Example.of(criteria)),
                 DroneEvent.STATE_CHANGE,
-                driver -> {
-                    if (driver.getLoadingPercentage() == 100) {
+                (drone, driver) -> {
+                    if (driver.hasLoad() && driver.getLoadingPercentage() == 100) {
                         return DroneState.LOADED;
                     } else {
                         return null;
@@ -74,7 +76,7 @@ public class DroneLogJob {
         criteria.setState(DroneState.DELIVERING);
         log(droneRepo.findAll(Example.of(criteria)),
                 DroneEvent.STATE_CHANGE,
-                driver -> {
+                (drone, driver) -> {
                     if (driver.isReachedDestination()) {
                         return DroneState.ARRIVED;
                     } else {
@@ -90,9 +92,12 @@ public class DroneLogJob {
         criteria.setState(DroneState.RETURNING);
         log(droneRepo.findAll(Example.of(criteria)),
                 DroneEvent.STATE_CHANGE,
-                driver -> {
+                (drone, driver) -> {
                     if (driver.isOnBase()) {
-                        return DroneState.IDLE;
+                        if (drone.getShipping() != null)
+                            return DroneState.LOADED;
+                        else
+                            return DroneState.IDLE;
                     } else {
                         return null;
                     }
@@ -103,14 +108,14 @@ public class DroneLogJob {
 
 
     private <T> void log(List<Drone> drones, DroneEvent event,
-                         Function<DroneClient.Driver, T> newValueGetter,
+                         BiFunction<Drone, DroneClient.Driver, T> newValueGetter,
                          Function<Drone, T> oldValueGetter,
                          BiConsumer<Drone, T> setNewValue) {
         List<DroneLog> logs = new ArrayList<>();
         List<Drone> dronesForUpdate = new ArrayList<>();
         for (Drone drone : drones) {
             DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
-            T newValue = newValueGetter.apply(driver);
+            T newValue = newValueGetter.apply(drone, driver);
             if (newValue == null)
                 continue;
             T oldValue = oldValueGetter.apply(drone);

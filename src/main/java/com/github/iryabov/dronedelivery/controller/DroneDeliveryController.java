@@ -1,5 +1,6 @@
 package com.github.iryabov.dronedelivery.controller;
 
+import com.github.iryabov.dronedelivery.enums.DeliveryStatus;
 import com.github.iryabov.dronedelivery.enums.DroneEvent;
 import com.github.iryabov.dronedelivery.enums.DroneModel;
 import com.github.iryabov.dronedelivery.enums.DroneState;
@@ -11,8 +12,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -110,9 +109,21 @@ public class DroneDeliveryController {
     }
     @Operation(summary = "Get detail information about the shipping")
     @ApiResponse(responseCode = "200", description = "Detailed information about the shipping")
-    @GetMapping("/shipping/{shipmentId}")
-    public ShippingInfo getShippingInfo(@Parameter(description = "Identifier of shipment") @PathVariable int shipmentId) {
-        return shippingService.getShippingInfo(shipmentId);
+    @GetMapping("/{droneId}/shipping")
+    public List<ShippingBriefInfo> getDroneDeliveries(
+            @Parameter(description = "Identifier of drone") @PathVariable int droneId,
+            @Parameter(description = "Delivery status") @RequestParam(name = "status", required = false) DeliveryStatus status,
+            @Parameter(description = "Page number (0 by default)") @RequestParam(name = "page", required = false) Integer page,
+            @Parameter(description = "Page size (10 by default)") @RequestParam(name = "size", required = false) Integer size) {
+        return shippingService.getDroneDeliveries(droneId, status, page, size);
+    }
+    @Operation(summary = "Get detail information about the shipping")
+    @ApiResponse(responseCode = "200", description = "Detailed information about the shipping")
+    @GetMapping("/{droneId}/shipping/{shipmentId}")
+    public ShippingDetailedInfo getShippingDetailedInfo(
+            @Parameter(description = "Identifier of drone") @PathVariable int droneId,
+            @Parameter(description = "Identifier of shipment") @PathVariable int shipmentId) {
+        return shippingService.getShippingDetailedInfo(droneId, shipmentId);
     }
     @Operation(summary = "Track shipment")
     @ApiResponse(responseCode = "200", description = "Passed stages of shipping")

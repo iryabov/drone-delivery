@@ -15,6 +15,9 @@ import com.github.iryabov.dronedelivery.service.ShippingService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -61,23 +64,23 @@ public class ShippingServiceImpl implements ShippingService {
         validatePackageWeight(droneId, totalWeight);
 
         Drone drone = droneRepo.findById(droneId).orElseThrow();
-        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
-        driver.load(totalWeight);
-
-        drone.setState(DroneState.LOADING);
         Shipping shipping = new Shipping();
+        shipping.setDrone(drone);
         shipping.setStatus(DeliveryStatus.PENDING);
         shipping.setItems(shippingMapper.toPackageItems(shippingPackage, shipping));
         shipping.setDestination(new Location());
         Shipping createdShipping = shippingRepo.save(shipping);
 
-        int shippingId = createdShipping.getId();
         drone.setShipping(createdShipping);
+        drone.setState(DroneState.LOADING);
         droneRepo.save(drone);
 
         trackDroneState(droneId, DroneState.LOADING);
-        trackDeliveryStatus(shippingId, droneId, DeliveryStatus.PENDING);
-        return shippingId;
+        trackDeliveryStatus(createdShipping.getId(), DeliveryStatus.PENDING);
+
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
+        driver.load(totalWeight);
+        return createdShipping.getId();
     }
 
     @Override
@@ -87,17 +90,51 @@ public class ShippingServiceImpl implements ShippingService {
         validateLowBattery(droneId);
 
         Drone drone = droneRepo.findById(droneId).orElseThrow();
+        Shipping shipping = drone.getShipping();
+        shipping.setDestination(new Location(destination.getLatitude(), destination.getLongitude()));
+        shipping.setDeliveryAddress(destination.getAddress());
+        shipping.setStatus(DeliveryStatus.SHIPPED);
+        shippingRepo.save(shipping);
+
         drone.setState(DroneState.DELIVERING);
-        drone.getShipping().setDestination(new Location(destination.getLatitude(), destination.getLongitude()));
-        drone.getShipping().setDeliveryAddress(destination.getAddress());
-        drone.getShipping().setStatus(DeliveryStatus.SHIPPED);
         droneRepo.save(drone);
 
-        trackDroneState(droneId, DroneState.DELIVERING);
-        trackDeliveryStatus(drone.getShipping().getId(), droneId, DeliveryStatus.SHIPPED);
+        trackDroneState(droneId, drone.getState());
+        trackDeliveryStatus(shipping.getId(), shipping.getStatus());
 
         DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.flyTo(new DroneClient.Point(destination.getLatitude(), destination.getLongitude()));
+    }
+
+    @Override
+    public void unload(int droneId) {
+        validateRequiringState(droneId,
+                DroneState.LOADING, DroneState.LOADED,
+                DroneState.DELIVERING, DroneState.ARRIVED);
+
+        Drone drone = droneRepo.findById(droneId).orElseThrow();
+        Shipping shipping = drone.getShipping();
+
+        switch (drone.getState()) {
+            case LOADING, LOADED -> {
+                drone.setState(DroneState.IDLE);
+                shipping.setStatus(DeliveryStatus.CANCELED);
+            }
+            case DELIVERING, ARRIVED -> {
+                drone.setState(DroneState.DELIVERED);
+                shipping.setStatus(DeliveryStatus.DELIVERED);
+            }
+        }
+        shippingRepo.save(shipping);
+
+        drone.setShipping(null);
+        droneRepo.save(drone);
+
+        trackDroneState(droneId, drone.getState());
+        trackDeliveryStatus(shipping.getId(), shipping.getStatus());
+
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
+        driver.unload();
     }
 
     @Override
@@ -105,65 +142,58 @@ public class ShippingServiceImpl implements ShippingService {
         validateRequiringState(droneId, DroneState.DELIVERING, DroneState.ARRIVED, DroneState.DELIVERED);
 
         Drone drone = droneRepo.findById(droneId).orElseThrow();
-        drone.setState(DroneState.RETURNING);
-        if (drone.getShipping() != null && drone.getShipping().getStatus() == DeliveryStatus.SHIPPED) {
-            drone.getShipping().setStatus(DeliveryStatus.CANCELED);
-
-            trackDeliveryStatus(drone.getShipping().getId(), droneId, DeliveryStatus.CANCELED);
+        Shipping shipping = drone.getShipping();
+        if (shipping != null) {
+            shipping.setStatus(DeliveryStatus.CANCELED);
+            shippingRepo.save(shipping);
+            trackDeliveryStatus(shipping.getId(), shipping.getStatus());
         }
-        trackDroneState(droneId, DroneState.RETURNING);
+
+        drone.setState(DroneState.RETURNING);
         droneRepo.save(drone);
+
+        trackDroneState(droneId, DroneState.RETURNING);
 
         DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
         driver.flyToBase();
     }
 
     @Override
-    public void unload(int droneId) {
-        validateRequiringState(droneId, DroneState.LOADING, DroneState.LOADED, DroneState.ARRIVED);
-
-        Drone drone = droneRepo.findById(droneId).orElseThrow();
-        switch (drone.getState()) {
-            case ARRIVED -> {
-                drone.setState(DroneState.DELIVERED);
-                drone.getShipping().setStatus(DeliveryStatus.DELIVERED);
-                trackDroneState(droneId, DroneState.DELIVERED);
-                trackDeliveryStatus(drone.getShipping().getId(), droneId, DeliveryStatus.DELIVERED);
-            }
-            case LOADED, LOADING -> {
-                drone.setState(DroneState.IDLE);
-                drone.getShipping().setStatus(DeliveryStatus.PENDING);
-                trackDroneState(droneId, DroneState.IDLE);
-            }
-        }
-        droneRepo.save(drone);
-
-        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
-        driver.unload();
+    public List<ShippingBriefInfo> getDroneDeliveries(int droneId,
+                                                      DeliveryStatus status,
+                                                      Integer page,
+                                                      Integer size) {
+        Shipping criteria = new Shipping();
+        if (status != null)
+            criteria.setStatus(status);
+        Page<Shipping> shippingPage = shippingRepo.findAll(Example.of(criteria),
+                PageRequest.of(
+                        page != null ? page : 0,
+                        size != null ? size : 10));
+        return shippingPage.map(s -> shippingMapper.toShippingBriefInfo(s, new ShippingBriefInfo())).toList();
     }
 
     @Override
-    public ShippingInfo getShippingInfo(int shipmentId) {
-        Shipping shipping = shippingRepo.findById(shipmentId).orElseThrow();
-        ShippingInfo shippingInfo = shippingMapper.toInfo(shipping);
-        shippingInfo.setDrone(droneMapper.toBriefInfo(shipping.getDrone()));
-        shippingInfo.setPackageInfo(shippingMapper.toPackageInfo(shipping.getItems()));
-        return shippingInfo;
+    public ShippingDetailedInfo getShippingDetailedInfo(int droneId, int shipmentId) {
+        Shipping shipping = shippingRepo.findByDroneIdAndId(droneId, shipmentId).orElseThrow();
+        ShippingDetailedInfo shippingDetailedInfo = shippingMapper.toShippingBriefInfo(shipping, new ShippingDetailedInfo());
+        shippingDetailedInfo.setDrone(droneMapper.toBriefInfo(shipping.getDrone()));
+        shippingDetailedInfo.setPackageInfo(shippingMapper.toPackageInfo(shipping.getItems()));
+        return shippingDetailedInfo;
     }
 
     @Override
     public List<ShippingLogInfo> trackShipment(int shipmentId) {
         List<ShippingLog> logs = shippingLogRepo.findAllByShippingId(shipmentId);
-        List<ShippingLogInfo> logsInfo = logs.stream().map(shippingMapper::toInfo).collect(toList());
+        List<ShippingLogInfo> logsInfo = logs.stream().map(shippingMapper::toLogInfo).collect(toList());
         for (int i = 1; i < logsInfo.size(); i++) {
             logsInfo.get(i).setOldValue(logsInfo.get(i - 1).getNewValue());
         }
         return logsInfo;
     }
 
-    private void trackDeliveryStatus(int shippingId, int droneId, DeliveryStatus newStatus) {
+    private void trackDeliveryStatus(int shippingId, DeliveryStatus newStatus) {
         ShippingLog entity = new ShippingLog();
-        entity.setDrone(droneRepo.getReferenceById(droneId));
         entity.setShipping(shippingRepo.getReferenceById(shippingId));
         entity.setEvent(ShippingEvent.STATUS_CHANGE);
         entity.setNewValue(newStatus.name());

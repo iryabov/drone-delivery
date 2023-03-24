@@ -5,6 +5,8 @@ import com.github.iryabov.dronedelivery.enums.DroneState;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Setter
@@ -20,11 +22,13 @@ public class Drone {
     @Enumerated(EnumType.STRING)
     @Column(name = "model_id", nullable = false, length = 30)
     private DroneModel model;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "state_id", nullable = false, length = 30)
     private DroneState state;
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shipping_id")
+    @OnDelete(action = OnDeleteAction.NO_ACTION)
     private Shipping shipping;
     @Column(name = "battery_level", nullable = false)
     private Integer batteryLevel;

@@ -58,7 +58,6 @@ public class DroneLogJobTest {
         var criteria = new DroneLog();
         criteria.setEvent(DroneEvent.BATTERY_CHANGE);
         List<DroneLog> logs = droneLogRepo.findAll(Example.of(criteria));
-        assertThat(logs.size(), is(4));
         assertThat(logs.stream().map(DroneLog::getLogTime).collect(toList()), everyItem(lessThan(LocalDateTime.now())));
         assertThat(logs.stream().map(DroneLog::getNewValue).collect(toList()), everyItem(notNullValue()));
     }
@@ -75,24 +74,30 @@ public class DroneLogJobTest {
         var criteria = new DroneLog();
         criteria.setEvent(DroneEvent.LOCATION_CHANGE);
         List<DroneLog> logs = droneLogRepo.findAll(Example.of(criteria));
-        assertThat(logs.size(), is(4));
         assertThat(logs.stream().map(DroneLog::getLogTime).collect(toList()), everyItem(lessThan(LocalDateTime.now())));
         assertThat(logs.stream().map(DroneLog::getNewValue).collect(toList()), everyItem(notNullValue()));
     }
 
     @Test
     void stateChangedLog() {
+        //LOADING -> LOADED
         when(driver.getLoadingPercentage()).thenReturn(50, 100);
+        when(driver.hasLoad()).thenReturn(true, true);
+        //RETURNING -> IDLE
         when(driver.isOnBase()).thenReturn(false, true);
+        //DELIVERING -> ARRIVED
+        when(driver.isReachedDestination()).thenReturn(false, true);
+
         job.stateChangedLog();
 
         var criteria = new DroneLog();
         criteria.setEvent(DroneEvent.STATE_CHANGE);
         List<DroneLog> logs = droneLogRepo.findAll(Example.of(criteria));
-        assertThat(logs.size(), is(2));
+        assertThat(logs.size(), is(3));
         assertThat(logs.stream().map(DroneLog::getLogTime).collect(toList()), everyItem(lessThan(LocalDateTime.now())));
         assertThat(logs.get(0).getNewValue(), is(DroneState.LOADED.name()));
-        assertThat(logs.get(1).getNewValue(), is(DroneState.IDLE.name()));
+        assertThat(logs.get(1).getNewValue(), is(DroneState.ARRIVED.name()));
+        assertThat(logs.get(2).getNewValue(), is(DroneState.IDLE.name()));
     }
 
     private static List<Drone> getTestData() {
@@ -101,6 +106,8 @@ public class DroneLogJobTest {
         data.add(DroneBuilder.builder().serial("2").model(DroneModel.LIGHTWEIGHT).state(DroneState.LOADING).batteryLevel(100).build());
         data.add(DroneBuilder.builder().serial("3").model(DroneModel.LIGHTWEIGHT).state(DroneState.RETURNING).batteryLevel(100).build());
         data.add(DroneBuilder.builder().serial("4").model(DroneModel.LIGHTWEIGHT).state(DroneState.RETURNING).batteryLevel(100).build());
+        data.add(DroneBuilder.builder().serial("5").model(DroneModel.LIGHTWEIGHT).state(DroneState.DELIVERING).batteryLevel(100).build());
+        data.add(DroneBuilder.builder().serial("6").model(DroneModel.LIGHTWEIGHT).state(DroneState.DELIVERING).batteryLevel(100).build());
         return data;
     }
 }

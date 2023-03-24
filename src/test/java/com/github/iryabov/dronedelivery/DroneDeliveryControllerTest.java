@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -233,16 +232,30 @@ public class DroneDeliveryControllerTest {
     }
 
     @Test
-    void getShippingInfo() {
-        var shipping = new ShippingInfo();
+    void getShippingDetailedInfo() {
+        var shipping = new ShippingDetailedInfo();
         shipping.setId(1);
 
-        when(shippingService.getShippingInfo(1)).thenReturn(shipping);
-        client.get().uri("/api/drones/shipping/{id}", 1)
+        when(shippingService.getShippingDetailedInfo(1, 1)).thenReturn(shipping);
+        client.get().uri("/api/drones/{droneId}/shipping/{shipmentId}", 1, 1)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(ShippingInfo.class)
+                .expectBody(ShippingDetailedInfo.class)
                 .isEqualTo(shipping);
+    }
+
+    @Test
+    void getDroneDeliveries() {
+        var shipping = new ShippingBriefInfo();
+        shipping.setId(1);
+        shipping.setDeliveryStatus(DeliveryStatus.SHIPPED);
+
+        when(shippingService.getDroneDeliveries(1, DeliveryStatus.SHIPPED, 0, 5)).thenReturn(List.of(shipping));
+        client.get().uri("/api/drones/{droneId}/shipping?status=SHIPPED&page=0&size=5", 1)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(ShippingBriefInfo.class)
+                .contains(shipping);
     }
 
     @Test

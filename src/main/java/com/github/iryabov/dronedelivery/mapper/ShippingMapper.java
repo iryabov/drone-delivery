@@ -39,16 +39,15 @@ public class ShippingMapper {
         return packageInfo;
     }
 
-    public ShippingInfo toInfo(Shipping shipping) {
-        ShippingInfo shippingInfo = new ShippingInfo();
-        shippingInfo.setId(shipping.getId());
-        shippingInfo.setDeliveryStatus(shipping.getStatus());
-        shippingInfo.setDestination(shipping.getDestination());
-        shippingInfo.setDeliveryAddress(shipping.getDeliveryAddress());
-        return shippingInfo;
+    public <T extends ShippingBriefInfo> T toShippingBriefInfo(Shipping shipping, T info) {
+        info.setId(shipping.getId());
+        info.setDeliveryStatus(shipping.getStatus());
+        info.setDestination(shipping.getDestination());
+        info.setDeliveryAddress(shipping.getDeliveryAddress());
+        return info;
     }
 
-    public ShippingLogInfo toInfo(ShippingLog entity) {
+    public ShippingLogInfo toLogInfo(ShippingLog entity) {
         ShippingLogInfo info = new ShippingLogInfo();
         info.setEvent(entity.getEvent());
         info.setTime(entity.getLogTime());
