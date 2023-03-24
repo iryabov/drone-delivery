@@ -5,6 +5,7 @@ import com.github.iryabov.dronedelivery.enums.DroneModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -15,14 +16,26 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class StubDroneClient implements DroneClient, InitializingBean {
-    private static final Point BASE = new Point(0, 0);
     private static final Logger logger = LoggerFactory.getLogger("DroneEmulator");
     private final Map<String, DroneEmulator> fleet = new ConcurrentHashMap<>();
+    @Value("${drone.base.latitude}")
+    private Double baseLatitude;
+    @Value("${drone.base.longitude}")
+    private Double baseLongitude;
+
+    public StubDroneClient() {
+    }
+
+    public StubDroneClient(Double baseLatitude, Double baseLongitude) {
+        this.baseLatitude = baseLatitude;
+        this.baseLongitude = baseLongitude;
+    }
 
     @Override
     public Driver lookup(String droneSerial, DroneModel model) {
         return fleet.compute(droneSerial, (s, d) -> Objects.requireNonNullElseGet(d,
-                () -> new DroneEmulator(model.getFlySpeed(), model.getWeightCapacity(), model.getBatteryCapacity(), BASE)));
+                () -> new DroneEmulator(model.getFlySpeed(), model.getWeightCapacity(), model.getBatteryCapacity(),
+                        new Point(baseLatitude, baseLongitude))));
     }
 
     @Override

@@ -16,7 +16,7 @@ public class DroneEmulatorTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        client = new StubDroneClient();
+        client = new StubDroneClient(0.0, 0.0);
         client.afterPropertiesSet();
     }
 
