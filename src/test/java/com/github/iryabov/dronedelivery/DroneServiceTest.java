@@ -19,6 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -99,9 +101,11 @@ public class DroneServiceTest {
 
 
         var logs = service.getEventLogs(droneId,
+                DroneEvent.BATTERY_CHANGE,
                 LocalDateTime.of(2023, 3, 20, 15, 0),
                 LocalDateTime.of(2023, 3, 20, 16, 0),
-                DroneEvent.BATTERY_CHANGE);
+                null, null
+                );
         assertThat(logs.size(), is(2));
         assertThat(logs.stream().map(DroneLogInfo::getEvent).collect(toList()), everyItem(is(DroneEvent.BATTERY_CHANGE)));
         assertThat(logs.get(0).getOldValue(), nullValue());
@@ -111,9 +115,11 @@ public class DroneServiceTest {
 
 
         logs = service.getEventLogs(droneId,
+                DroneEvent.LOCATION_CHANGE,
                 LocalDateTime.of(2023, 3, 20,16 ,0),
                 LocalDateTime.of(2023, 3, 20, 17, 0),
-                DroneEvent.LOCATION_CHANGE);
+                null, null
+                );
         assertThat(logs.size(), is(2));
         assertThat(logs.stream().map(DroneLogInfo::getEvent).collect(toList()), everyItem(is(DroneEvent.LOCATION_CHANGE)));
         assertThat(logs.get(0).getOldValue(), nullValue());
@@ -122,15 +128,26 @@ public class DroneServiceTest {
         assertThat(logs.get(1).getNewValue(), is("(10, 10)"));
 
         logs = service.getEventLogs(droneId,
+                DroneEvent.STATE_CHANGE,
                 LocalDateTime.of(2023, 3, 20,17 ,0),
                 LocalDateTime.of(2023, 3, 20, 18, 0),
-                DroneEvent.STATE_CHANGE);
+                null, null
+                );
         assertThat(logs.size(), is(2));
         assertThat(logs.stream().map(DroneLogInfo::getEvent).collect(toList()), everyItem(is(DroneEvent.STATE_CHANGE)));
         assertThat(logs.get(0).getOldValue(), nullValue());
         assertThat(logs.get(0).getNewValue(), is(DroneState.LOADING.name()));
         assertThat(logs.get(1).getOldValue(), is(DroneState.LOADING.name()));
         assertThat(logs.get(1).getNewValue(), is(DroneState.LOADED.name()));
+
+
+        logs = service.getEventLogs(droneId,
+                DroneEvent.LOCATION_CHANGE,
+                LocalDateTime.of(2023, 3, 20,16 ,0),
+                LocalDateTime.of(2023, 3, 20, 17, 0),
+                0, 1
+        );
+        assertThat(logs.size(), is(1));
     }
 
     @Test

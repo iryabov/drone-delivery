@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -47,8 +49,10 @@ public class DroneDeliveryController {
     public List<DroneLogInfo> getEventLogs(@Parameter(description = "Identifier of drone") @PathVariable int droneId,
                                            @Parameter(description = "Logs of what event you need to find") @RequestParam(name = "event") DroneEvent event,
                                            @Parameter(description = "Date and time from which logs should be found") @RequestParam(name = "from", required = false) LocalDateTime from,
-                                           @Parameter(description = "Date and time until which logs should be found") @RequestParam(name = "till", required = false) LocalDateTime till) {
-        return droneService.getEventLogs(droneId, from, till, event);
+                                           @Parameter(description = "Date and time until which logs should be found") @RequestParam(name = "till", required = false) LocalDateTime till,
+                                           @Parameter(description = "Page number (from 0)") @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                           @Parameter(description = "Page size") @RequestParam(name = "size", required = false, defaultValue = "10") Integer size) {
+        return droneService.getEventLogs(droneId, event, from, till, page, size);
     }
     @Operation(summary = "Get all drones by state and model")
     @ApiResponse(responseCode = "200", description = "List of found drones")

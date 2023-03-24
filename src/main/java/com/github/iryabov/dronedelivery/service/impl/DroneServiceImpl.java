@@ -13,9 +13,13 @@ import com.github.iryabov.dronedelivery.model.DroneRegistrationForm;
 import com.github.iryabov.dronedelivery.repository.DroneLogRepository;
 import com.github.iryabov.dronedelivery.repository.DroneRepository;
 import com.github.iryabov.dronedelivery.service.DroneService;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -53,11 +57,20 @@ public class DroneServiceImpl implements DroneService {
     }
 
     @Override
-    public List<DroneLogInfo> getEventLogs(int droneId, LocalDateTime from, LocalDateTime till, DroneEvent event) {
+    public List<DroneLogInfo> getEventLogs(int droneId,
+                                           DroneEvent event,
+                                           @Nullable LocalDateTime from,
+                                           @Nullable LocalDateTime till,
+                                           Integer page,
+                                           Integer size) {
         List<DroneLogInfo> logs = droneLogRepo.findAllByDroneIdAndLogTimeBetweenAndEvent(droneId,
                         from != null ? from : LocalDateTime.now().minus(1, ChronoUnit.HOURS),
                         till != null ? till : LocalDateTime.now(),
-                        event)
+                        event,
+                        PageRequest.of(
+                                page != null ? page : 0,
+                                size != null ? size : 10,
+                                Sort.by(new Sort.Order(Sort.Direction.ASC, "logTime"))))
                 .stream()
                 .map(droneMapper::toDroneLogInfo)
                 .collect(toList());

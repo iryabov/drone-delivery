@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -135,9 +136,11 @@ public class DroneDeliveryControllerTest {
         log.setNewValue("99");
 
         when(droneService.getEventLogs(1,
+                DroneEvent.BATTERY_CHANGE,
                 LocalDateTime.of(2023, 3, 22, 0, 0),
                 null,
-                DroneEvent.BATTERY_CHANGE)
+                null,
+                null)
         ).thenReturn(List.of(log));
         client.get().uri("/api/drones/{id}/logs?from=2023-03-22T00:00:00&event=BATTERY_CHANGE", 1)
                 .exchange()

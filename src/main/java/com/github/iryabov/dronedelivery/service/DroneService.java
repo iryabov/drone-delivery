@@ -8,6 +8,7 @@ import com.github.iryabov.dronedelivery.model.DroneDetailedInfo;
 import com.github.iryabov.dronedelivery.model.DroneLogInfo;
 import com.github.iryabov.dronedelivery.model.DroneRegistrationForm;
 import jakarta.annotation.Nullable;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,12 +40,19 @@ public interface DroneService {
     /**
      * Get drone event logs
      * @param droneId Drone identifier
+     * @param event Which event
      * @param from Date and time from (from an hour ago by default)
      * @param till Date and time until (until now by default)
-     * @param event Which event
+     * @param page Page number
+     * @param size Page size
      * @return List of logs
      */
-    List<DroneLogInfo> getEventLogs(int droneId, @Nullable LocalDateTime from, @Nullable LocalDateTime till, DroneEvent event);
+    List<DroneLogInfo> getEventLogs(int droneId,
+                                    DroneEvent event,
+                                    @Nullable LocalDateTime from,
+                                    @Nullable LocalDateTime till,
+                                    @Nullable Integer page,
+                                    @Nullable Integer size);
 
     /**
      * Get all drones
