@@ -55,7 +55,7 @@ public class ExceptionsHandler {
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(DroneDischargedException.class)
+    @ExceptionHandler(DroneOverweightException.class)
     public ResponseError handleDischarge(DroneOverweightException ex) {
         ResponseError error = new ResponseError();
         error.setMessage("Too big load");

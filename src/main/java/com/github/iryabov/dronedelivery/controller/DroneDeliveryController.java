@@ -50,8 +50,8 @@ public class DroneDeliveryController {
                                            @Parameter(description = "Logs of what event you need to find") @RequestParam(name = "event") DroneEvent event,
                                            @Parameter(description = "Date and time from which logs should be found") @RequestParam(name = "from", required = false) LocalDateTime from,
                                            @Parameter(description = "Date and time until which logs should be found") @RequestParam(name = "till", required = false) LocalDateTime till,
-                                           @Parameter(description = "Page number (from 0)") @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
-                                           @Parameter(description = "Page size") @RequestParam(name = "size", required = false, defaultValue = "10") Integer size) {
+                                           @Parameter(description = "Page number (0 by default)") @RequestParam(name = "page", required = false) Integer page,
+                                           @Parameter(description = "Page size (10 by default)") @RequestParam(name = "size", required = false) Integer size) {
         return droneService.getEventLogs(droneId, event, from, till, page, size);
     }
     @Operation(summary = "Get all drones by state and model")

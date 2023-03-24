@@ -2,6 +2,8 @@ package com.github.iryabov.dronedelivery;
 
 import com.github.iryabov.dronedelivery.enums.*;
 import com.github.iryabov.dronedelivery.exception.DroneDeliveryException;
+import com.github.iryabov.dronedelivery.exception.DroneDischargedException;
+import com.github.iryabov.dronedelivery.exception.DroneOverweightException;
 import com.github.iryabov.dronedelivery.model.*;
 import com.github.iryabov.dronedelivery.service.DroneService;
 import com.github.iryabov.dronedelivery.service.ShippingService;
@@ -276,5 +278,34 @@ public class DroneDeliveryControllerTest {
         assertThat(result.getStatus(), is(HttpStatusCode.valueOf(400)));
         assertThat(result.getResponseBody(), notNullValue());
         assertThat(result.getResponseBody().getMessage(), is("Some validation message"));
+    }
+
+    @Test
+    void errorsHandling() {
+        PackageForm form = PackageForm.builder().build();
+
+        when(shippingService.load(1, form)).thenThrow(new DroneDischargedException());
+        var result = client.post().uri("/api/drones/{id}/load", 1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(form), PackageForm.class)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody(ResponseError.class)
+                .returnResult();
+        assertThat(result.getStatus(), is(HttpStatusCode.valueOf(500)));
+        assertThat(result.getResponseBody(), notNullValue());
+        assertThat(result.getResponseBody().getMessage(), is("Drone is fully discharged"));
+
+        when(shippingService.load(2, form)).thenThrow(new DroneOverweightException());
+        result = client.post().uri("/api/drones/{id}/load", 2)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(form), PackageForm.class)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody(ResponseError.class)
+                .returnResult();
+        assertThat(result.getStatus(), is(HttpStatusCode.valueOf(500)));
+        assertThat(result.getResponseBody(), notNullValue());
+        assertThat(result.getResponseBody().getMessage(), is("Too big load"));
     }
 }
