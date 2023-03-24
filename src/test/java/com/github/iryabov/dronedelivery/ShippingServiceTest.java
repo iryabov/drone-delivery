@@ -109,6 +109,7 @@ public class ShippingServiceTest {
         assertThat(shipping.getDrone().getState(), is(DroneState.DELIVERING));
 
         //Passing the package to the customer
+        changeStateForTest(someDrone.getId(), DroneState.ARRIVED);
         service.unload(someDrone.getId());
         verify(driver).unload();
 

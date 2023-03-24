@@ -224,8 +224,8 @@ In the response, all changes in the states of the drone for the last hour:
 To track the current position of the drone or the current battery charge, change the `event` parameter to `LOCATION_CHANGE` or `BATTERY_CHANGE`.
 :::
 
-7. When the drone reach the destination you need to unload it.
-Use the following request for it:
+7. When the drone reaches its destination, its status will change to `ARRIVED`, you need to unload it.
+Use the following request:
 ````shell
 curl -X 'POST' \
   'http://localhost:8080/api/drones/1/unload' \

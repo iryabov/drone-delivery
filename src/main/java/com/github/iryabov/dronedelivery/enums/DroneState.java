@@ -5,6 +5,7 @@ public enum DroneState {
     LOADING,
     LOADED,
     DELIVERING,
+    ARRIVED,
     DELIVERED,
     RETURNING
 }

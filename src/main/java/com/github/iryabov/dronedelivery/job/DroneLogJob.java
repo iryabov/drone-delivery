@@ -69,6 +69,22 @@ public class DroneLogJob {
                 Drone::setState);
     }
 
+    private void deliveringLog() {
+        Drone criteria = new Drone();
+        criteria.setState(DroneState.DELIVERING);
+        log(droneRepo.findAll(Example.of(criteria)),
+                DroneEvent.STATE_CHANGE,
+                driver -> {
+                    if (driver.isReachedDestination()) {
+                        return DroneState.ARRIVED;
+                    } else {
+                        return null;
+                    }
+                },
+                Drone::getState,
+                Drone::setState);
+    }
+
     private void returningLog() {
         Drone criteria = new Drone();
         criteria.setState(DroneState.RETURNING);

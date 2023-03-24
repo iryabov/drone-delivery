@@ -102,7 +102,7 @@ public class ShippingServiceImpl implements ShippingService {
 
     @Override
     public void returnBack(int droneId) {
-        validateRequiringState(droneId, DroneState.DELIVERING, DroneState.DELIVERED);
+        validateRequiringState(droneId, DroneState.DELIVERING, DroneState.ARRIVED, DroneState.DELIVERED);
 
         Drone drone = droneRepo.findById(droneId).orElseThrow();
         drone.setState(DroneState.RETURNING);
@@ -120,14 +120,11 @@ public class ShippingServiceImpl implements ShippingService {
 
     @Override
     public void unload(int droneId) {
-        validateRequiringState(droneId, DroneState.LOADING, DroneState.LOADED, DroneState.DELIVERING);
+        validateRequiringState(droneId, DroneState.LOADING, DroneState.LOADED, DroneState.ARRIVED);
 
         Drone drone = droneRepo.findById(droneId).orElseThrow();
-        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
-        driver.unload();
-
         switch (drone.getState()) {
-            case DELIVERING -> {
+            case ARRIVED -> {
                 drone.setState(DroneState.DELIVERED);
                 drone.getShipping().setStatus(DeliveryStatus.DELIVERED);
                 trackDroneState(droneId, DroneState.DELIVERED);
@@ -140,6 +137,9 @@ public class ShippingServiceImpl implements ShippingService {
             }
         }
         droneRepo.save(drone);
+
+        DroneClient.Driver driver = droneClient.lookup(drone.getSerial(), drone.getModel());
+        driver.unload();
     }
 
     @Override
