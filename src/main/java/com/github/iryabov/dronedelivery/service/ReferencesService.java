@@ -1,6 +1,7 @@
 package com.github.iryabov.dronedelivery.service;
 
 import com.github.iryabov.dronedelivery.model.MedicationForm;
+import jakarta.annotation.Nullable;
 
 import java.util.List;
 
@@ -10,9 +11,11 @@ import java.util.List;
 public interface ReferencesService {
     /**
      * Get list of medications
+     * @param page Page number (0 by default)
+     * @param size Page size (10 by default)
      * @return List of medications
      */
-    List<MedicationForm> getAllMedications();
+    List<MedicationForm> getAllMedications(@Nullable Integer page, @Nullable Integer size);
 
     /**
      * Get one of medication

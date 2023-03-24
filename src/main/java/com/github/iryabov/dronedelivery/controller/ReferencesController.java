@@ -23,8 +23,9 @@ public class ReferencesController {
     @Operation(summary = "Get a list of medications")
     @ApiResponse(responseCode = "200", description = "List of medications")
     @GetMapping("/medications")
-    public List<MedicationForm> getAllMedications() {
-        return service.getAllMedications();
+    public List<MedicationForm> getAllMedications(@Parameter(description = "Page number (0 by default)") @RequestParam(name = "page", required = false) Integer page,
+                                                  @Parameter(description = "Page size (10 by default)") @RequestParam(name = "size", required = false) Integer size) {
+        return service.getAllMedications(page, size);
     }
 
     @Operation(summary = "Get a medication by identifier")

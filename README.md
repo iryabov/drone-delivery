@@ -40,6 +40,13 @@ Tomcat started on port(s): 8080 (http) with context path ''
 You can see REST API documentation at the link:
 http://localhost:8080/swagger-ui/index.html
 
+:::note
+You can set up the location where drones base with following properties:
+````shell
+java -jar target/drone-delivery.jar --drone.base.latitude=0.0 --drone.base.longitude=0.0
+````
+:::
+
 ### Test
 
 After launching the application, you will be able to manage a fleet of 10 drones.

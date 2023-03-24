@@ -26,7 +26,7 @@ public class ReferencesServiceTest {
                 .code("PEN")
                 .weight(0.05).build());
         assertThat(medicineId, greaterThan(0));
-        assertThat(service.getAllMedications().size(), greaterThan(0));
+        assertThat(service.getAllMedications(null, null).size(), greaterThan(0));
 
         //Reading medicine
         var medication = service.getOneMedication(medicineId);
@@ -41,7 +41,7 @@ public class ReferencesServiceTest {
 
         //Deleting medicine
         service.deleteMedication(medicineId);
-        assertThat(service.getAllMedications().stream().map(MedicationForm::getCode).collect(toList()), not(hasItem("PEN")));
+        assertThat(service.getAllMedications(null, null).stream().map(MedicationForm::getCode).collect(toList()), not(hasItem("PEN")));
     }
 
     @Test

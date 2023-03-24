@@ -8,6 +8,7 @@ import com.github.iryabov.dronedelivery.service.ReferencesService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,8 +25,10 @@ public class ReferencesServiceImpl implements ReferencesService {
     private Validator validator;
 
     @Override
-    public List<MedicationForm> getAllMedications() {
-        return medicationRepo.findAll().stream().map(mapper::toMedicationForm).collect(toList());
+    public List<MedicationForm> getAllMedications(Integer page, Integer size) {
+        return medicationRepo.findAll(PageRequest.of(
+                page != null ? page : 0, size != null ? size : 10))
+                .stream().map(mapper::toMedicationForm).collect(toList());
     }
 
     @Override

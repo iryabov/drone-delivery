@@ -16,7 +16,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -68,7 +70,7 @@ public class ReferencesControllerTest {
     void read() {
         var result = MedicationForm.builder().id(1).code("CODE").name("Medication").weight(0.1).build();
         //get all
-        when(service.getAllMedications()).thenReturn(List.of(result));
+        when(service.getAllMedications(null, null)).thenReturn(List.of(result));
         client.get().uri("/api/references/medications")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
@@ -104,8 +106,7 @@ public class ReferencesControllerTest {
         assertThat(result.getResponseBody(), notNullValue());
         assertThat(result.getResponseBody().getMessage(), not(emptyString()));
         assertThat(result.getResponseBody().getErrors().size(), is(2));
-        assertThat(result.getResponseBody().getErrors().get(0).getField(), is("name"));
-        assertThat(result.getResponseBody().getErrors().get(1).getField(), is("code"));
+        assertThat(result.getResponseBody().getErrors().stream().map(ResponseError.Field::getField).collect(toList()), hasItems("name", "code"));
     }
 
 
