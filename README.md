@@ -6,10 +6,10 @@
 
 This is a REST service that allows you to manage a fleet of drones for medication delivery.
 
-
 ### Prerequisites
 
 To build and run the application, the following software must be installed:
+
 - Java 17
 - Maven 3
 
@@ -18,29 +18,37 @@ Port 8080 must also not be occupied by another application.
 ### Build
 
 To build the application, run the Maven command at the root of the project:
+
 ````shell
 mvn clean package
 ````
+
 The application will be built under the path `/target/drone-delivery.jar`.
 
 ### Run
 
 To run the application, perform the Java command:
+
 ````shell
 java -jar target/drone-delivery.jar
 ````
+
 After starting the application, the program console will display the line:
+
 ````
 Tomcat started on port(s): 8080 (http) with context path ''
 ````
+
 You can see REST API documentation at the link:
 http://localhost:8080/swagger-ui/index.html
 
 :::note
 You can set up the location where drones base with following properties:
+
 ````shell
 java -jar target/drone-delivery.jar --drone.base.latitude=0.0 --drone.base.longitude=0.0
 ````
+
 :::
 
 ### Test
@@ -48,6 +56,7 @@ java -jar target/drone-delivery.jar --drone.base.latitude=0.0 --drone.base.longi
 After launching the application, you will be able to manage a fleet of 10 drones.
 
 1. Run the following REST request to see your fleet of drones:
+
 ```shell
 curl -X 'GET' \
   'http://localhost:8080/api/drones' \
@@ -55,6 +64,7 @@ curl -X 'GET' \
 ```
 
 You will see a list of your drones:
+
 ```json
 [
   {
@@ -74,6 +84,7 @@ You will see a list of your drones:
 ```
 
 2. To view detailed information about a specific drone, run the command with drone `id`:
+
 ```shell
 curl -X 'GET' \
   'http://localhost:8080/api/drones/1' \
@@ -81,6 +92,7 @@ curl -X 'GET' \
 ```
 
 You will see the following response:
+
 ````json
 {
   "id": 1,
@@ -96,10 +108,12 @@ You will see the following response:
   }
 }
 ````
-Where `currentLocation` is the current coordinates of the drone's location. 
+
+Where `currentLocation` is the current coordinates of the drone's location.
 Now it is in the warehouse.
 
 3. To send a drone on a mission, you need to load the package with goods.
+
 ````shell
 curl -X 'POST' \
   'http://localhost:8080/api/drones/1/load' \
@@ -114,34 +128,39 @@ curl -X 'POST' \
   ]
 }'
 ````
+
 Where `goodsId` is the medication identifier and `quantity` is the required quantity in the order.
 
 :::note
 You can find all medications by following request:
+
 ````shell
 curl -X 'GET' \
   'http://localhost:8080/api/references/medications' \
   -H 'accept: */*'
 ````
+
 :::
 
 After perform you will be returned the identifier of shipment:
+
 ````json5
 {
-  "id": 1 //shipment identifier
+  "id": 1
+  //shipment identifier
 }
 ````
 
-
 4. With it, you can track the delivery status:
+
 ````shell
 curl -X 'GET' \
   'http://localhost:8080/api/drones/1/shipping/1' \
   -H 'accept: */*'
 ````
 
-
 The request will return the detailed information about the shipping:
+
 ```json
 {
   "id": 1,
@@ -157,9 +176,11 @@ The request will return the detailed information about the shipping:
   }
 }
 ```
+
 The `"deliveryStatus": "PENDING"` means that the package is ready to ship, but has not yet been sent.
 
 5. Next you should send the drone to the delivery address:
+
 ````shell
 curl -X 'POST' \
   'http://localhost:8080/api/drones/1/send' \
@@ -172,10 +193,10 @@ curl -X 'POST' \
 }'
 ````
 
-The service will respond with status 200. 
+The service will respond with status 200.
 This means that the drone is flying along the coordinates.
 
-:::warning 
+:::warning
 Don't send the drone too far, otherwise it will waste the battery and won't be able to return!
 :::
 
@@ -188,6 +209,7 @@ curl -X 'GET' \
 ````
 
 In the response, 10 last changes in the states of the drone for the last hour:
+
 ````json
 [
   {
@@ -211,21 +233,25 @@ In the response, 10 last changes in the states of the drone for the last hour:
 ]
 ````
 
-:::tip 
-To track the current position of the drone or the current battery charge, change the `event` parameter to `LOCATION_CHANGE` or `BATTERY_CHANGE`.
+:::tip
+To track the current position of the drone or the current battery charge, change the `event` parameter
+to `LOCATION_CHANGE` or `BATTERY_CHANGE`.
 :::
 
 7. When the drone reaches its destination, its status will change to `ARRIVED`, you need to unload it.
-Use the following request:
+   Use the following request:
+
 ````shell
 curl -X 'POST' \
   'http://localhost:8080/api/drones/1/unload' \
   -H 'accept: */*' \
   -d ''
 ````
+
 After that, the package will be considered delivered.
 
 8. Then send the drone back to the warehouse:
+
 ````shell
 curl -X 'POST' \
   'http://localhost:8080/api/drones/1/return' \
@@ -241,7 +267,7 @@ The drone delivery service is a Spring Boot Application with an embedded databas
 
 #### Java packages
 
-- `/client` Drone fleet emulation 
+- `/client` Drone fleet emulation
 - `/config` Spring configurations
 - `/controller` REST controllers and handlers
 - `/entity` JPA Entities
@@ -265,3 +291,13 @@ The drone delivery service is a Spring Boot Application with an embedded databas
 #### Delivery statuses
 
 ![delivery statuses](/images/deliverystatuses.png)
+
+#### Test classes
+
+- `client/DroneEmulatorTest`  Module tests of drone emulation
+- `DroneServiceTest`  Integration tests of drone service
+- `ReferencesServiceTest`  Integration tests of references service
+- `ShippingServiceTest`  Integration tests of shipping service
+- `DroneDeliveryControllerTest`  API tests of delivery controller
+- `ReferencesControllerTest`  API tests of references controller
+- `DroneLogJobTest`  Integration tests of background tasks
