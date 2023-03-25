@@ -1,10 +1,6 @@
 ## Drones
 
-[[_TOC_]]
-
 ---
-
-:scroll: **START**
 
 ### Overview
 
@@ -158,14 +154,7 @@ The request will return the detailed information about the shipping:
       }
     ],
     "totalWeight": 0.25
-  },
-  "drone": {
-    "id": 1,
-    "name": "LIGHTWEIGHT-01",
-    "state": "LOADED",
-    "batteryLevel": 100
-  },
-  ...
+  }
 }
 ```
 The `"deliveryStatus": "PENDING"` means that the package is ready to ship, but has not yet been sent.
@@ -198,7 +187,7 @@ curl -X 'GET' \
   -H 'accept: */*'
 ````
 
-In the response, all changes in the states of the drone for the last hour:
+In the response, 10 last changes in the states of the drone for the last hour:
 ````json
 [
   {
@@ -234,6 +223,7 @@ curl -X 'POST' \
   -H 'accept: */*' \
   -d ''
 ````
+After that, the package will be considered delivered.
 
 8. Then send the drone back to the warehouse:
 ````shell
@@ -245,75 +235,33 @@ curl -X 'POST' \
 
 After a while, the drone will return to the warehouse and start charging in order to go on a mission again.
 
-### Introduction
+### Implementation
 
-There is a major new technology that is destined to be a disruptive force in the field of transportation: **the drone**. Just as the mobile phone allowed developing countries to leapfrog older technologies for personal communication, the drone has the potential to leapfrog traditional transportation infrastructure.
+The drone delivery service is a Spring Boot Application with an embedded database H2.
 
-Useful drone functions include delivery of small items that are (urgently) needed in locations with difficult access.
+#### Java packages
 
----
+- `/client` Drone fleet emulation 
+- `/config` Spring configurations
+- `/controller` REST controllers and handlers
+- `/entity` JPA Entities
+- `/enums` Reference values
+- `/exception` Exception classes
+- `/job` Background tasks
+- `/mapper` Classes for mapping entities and DTOs
+- `/model` DTO classes
+- `/repository` JPA repositories
+- `/service` API and implementation
+- `/validation` Classes for validation
 
-### Task description
+#### Database schema
 
-We have a fleet of **10 drones**. A drone is capable of carrying devices, other than cameras, and capable of delivering small loads. For our use case **the load is medications**.
+![database](/images/database.png)
 
-A **Drone** has:
-- serial number (100 characters max);
-- model (Lightweight, Middleweight, Cruiserweight, Heavyweight);
-- weight limit (500gr max);
-- battery capacity (percentage);
-- state (IDLE, LOADING, LOADED, DELIVERING, DELIVERED, RETURNING).
+#### Drone states
 
-Each **Medication** has: 
-- name (allowed only letters, numbers, ‘-‘, ‘_’);
-- weight;
-- code (allowed only upper case letters, underscore and numbers);
-- image (picture of the medication case).
+![drone states](/images/dronestates.png)
 
-Develop a service via REST API that allows clients to communicate with the drones (i.e. **dispatch controller**). The specific communicaiton with the drone is outside the scope of this task. 
+#### Delivery statuses
 
-The service should allow:
-- registering a drone;
-- loading a drone with medication items;
-- checking loaded medication items for a given drone; 
-- checking available drones for loading;
-- check drone battery level for a given drone;
-
-> Feel free to make assumptions for the design approach. 
-
----
-
-### Requirements
-
-While implementing your solution **please take care of the following requirements**: 
-
-#### Functional requirements
-
-- There is no need for UI;
-- Prevent the drone from being loaded with more weight that it can carry;
-- Prevent the drone from being in LOADING state if the battery level is **below 25%**;
-- Introduce a periodic task to check drones battery levels and create history/audit event log for this.
-
----
-
-#### Non-functional requirements
-
-- Input/output data must be in JSON format;
-- Your project must be buildable and runnable;
-- Your project must have a README file with build/run/test instructions (use DB that can be run locally, e.g. in-memory, via container);
-- Any data required by the application to run (e.g. reference tables, dummy data) must be preloaded in the database.
-- JUnit tests are mandatory;
-- Advice: Show us how you work through your commit history.
-
----
-
-:scroll: **END** 
-
-
-
-
-
-
-
-
-
+![delivery statuses](/images/deliverystatuses.png)
