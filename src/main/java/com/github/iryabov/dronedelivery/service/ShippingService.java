@@ -72,7 +72,7 @@ public interface ShippingService {
     /**
      * Get detailed information about shipping
      *
-     * @param droneId Drone identifier
+     * @param droneId    Drone identifier
      * @param shipmentId Shipment identifier
      * @return Information about the shipping
      */
@@ -81,8 +81,9 @@ public interface ShippingService {
     /**
      * Get shipping logs
      *
+     * @param droneId    Drone identifier
      * @param shipmentId Shipment identifier
      * @return List of logs
      */
-    List<ShippingLogInfo> trackShipment(int shipmentId);
+    List<ShippingLogInfo> trackShipment(int droneId, int shipmentId);
 }

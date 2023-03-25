@@ -266,8 +266,8 @@ public class DroneDeliveryControllerTest {
         log.setOldValue(DeliveryStatus.SHIPPED.name());
         log.setNewValue(DeliveryStatus.DELIVERED.name());
 
-        when(shippingService.trackShipment(1)).thenReturn(List.of(log));
-        client.get().uri("/api/drones/shipping/{id}/track", 1)
+        when(shippingService.trackShipment(1, 1)).thenReturn(List.of(log));
+        client.get().uri("/api/drones/{droneId}/shipping/{shipmentId}/track", 1, 1)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(ShippingLogInfo.class)

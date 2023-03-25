@@ -30,18 +30,21 @@ public class DroneDeliveryController {
     public ResponseId<Integer> create(@Parameter(description = "Form of drone's registration") @RequestBody DroneRegistrationForm registrationForm) {
         return new ResponseId<>(droneService.create(registrationForm));
     }
+
     @Operation(summary = "Delete a drone")
     @ApiResponse(responseCode = "200", description = "Drone was deleted")
     @DeleteMapping("/{droneId}")
     public void delete(@Parameter(description = "Identifier of drone") @PathVariable int droneId) {
         droneService.delete(droneId);
     }
+
     @Operation(summary = "Get detail information about a drone")
     @ApiResponse(responseCode = "200", description = "Detailed information about a drone")
     @GetMapping("/{droneId}")
     public DroneDetailedInfo getDetailedInfo(@Parameter(description = "Identifier of drone") @PathVariable int droneId) {
         return droneService.getDetailedInfo(droneId);
     }
+
     @Operation(summary = "Get drone's events log")
     @ApiResponse(responseCode = "200", description = "List of log records")
     @GetMapping("/{droneId}/logs")
@@ -53,13 +56,15 @@ public class DroneDeliveryController {
                                            @Parameter(description = "Page size (10 by default)") @RequestParam(name = "size", required = false) Integer size) {
         return droneService.getEventLogs(droneId, event, from, till, page, size);
     }
+
     @Operation(summary = "Get all drones by state and model")
     @ApiResponse(responseCode = "200", description = "List of found drones")
     @GetMapping
     public List<DroneBriefInfo> getAllByStateAndModel(@Parameter(description = "State of drone") @RequestParam(name = "state", required = false) DroneState state,
-                                                      @Parameter(description = "Model of drone")  @RequestParam(name = "model", required = false) DroneModel model) {
+                                                      @Parameter(description = "Model of drone") @RequestParam(name = "model", required = false) DroneModel model) {
         return droneService.getAllByStateAndModel(state, model);
     }
+
     @Operation(summary = "Get list of drones with low battery charge")
     @ApiResponse(responseCode = "200", description = "List of found drones")
     @GetMapping("/low_battery")
@@ -73,12 +78,14 @@ public class DroneDeliveryController {
     public List<DroneBriefInfo> getDronesReadyForLoading() {
         return shippingService.getDronesReadyForLoading();
     }
+
     @Operation(summary = "Get list of drones ready for shipping")
     @ApiResponse(responseCode = "200", description = "List of found drones")
     @GetMapping("/ready_for_shipping")
     public List<DroneBriefInfo> getDronesReadyForShipping() {
         return shippingService.getDronesReadyForShipping();
     }
+
     @Operation(summary = "Send a command to the drone to load the package")
     @ApiResponse(responseCode = "200", description = "Created shipping task")
     @PostMapping("/{droneId}/load")
@@ -87,6 +94,7 @@ public class DroneDeliveryController {
                                     @RequestBody PackageForm shippingPackage) {
         return new ResponseId<>(shippingService.load(droneId, shippingPackage));
     }
+
     @Operation(summary = "Send a command to the drone to fly to the delivery address")
     @ApiResponse(responseCode = "200", description = "Drone are flying")
     @PostMapping("/{droneId}/send")
@@ -95,20 +103,23 @@ public class DroneDeliveryController {
                      @RequestBody DeliveryAddressForm destination) {
         shippingService.send(droneId, destination);
     }
+
     @Operation(summary = "Send a command to the drone to unload the package")
     @ApiResponse(responseCode = "200", description = "Drone unloaded")
     @PostMapping("/{droneId}/unload")
     public void unload(@Parameter(description = "Identifier of drone") @PathVariable int droneId) {
         shippingService.unload(droneId);
     }
+
     @Operation(summary = "Send a command to the drone to get back to the warehouse")
     @ApiResponse(responseCode = "200", description = "Drone are coming back")
     @PostMapping("/{droneId}/return")
     public void returnBack(@Parameter(description = "Identifier of drone") @PathVariable int droneId) {
         shippingService.returnBack(droneId);
     }
-    @Operation(summary = "Get detail information about the shipping")
-    @ApiResponse(responseCode = "200", description = "Detailed information about the shipping")
+
+    @Operation(summary = "Get all deliveries by a specified drone")
+    @ApiResponse(responseCode = "200", description = "Brief information about every shipping")
     @GetMapping("/{droneId}/shipping")
     public List<ShippingBriefInfo> getDroneDeliveries(
             @Parameter(description = "Identifier of drone") @PathVariable int droneId,
@@ -117,6 +128,7 @@ public class DroneDeliveryController {
             @Parameter(description = "Page size (10 by default)") @RequestParam(name = "size", required = false) Integer size) {
         return shippingService.getDroneDeliveries(droneId, status, page, size);
     }
+
     @Operation(summary = "Get detail information about the shipping")
     @ApiResponse(responseCode = "200", description = "Detailed information about the shipping")
     @GetMapping("/{droneId}/shipping/{shipmentId}")
@@ -125,10 +137,12 @@ public class DroneDeliveryController {
             @Parameter(description = "Identifier of shipment") @PathVariable int shipmentId) {
         return shippingService.getShippingDetailedInfo(droneId, shipmentId);
     }
+
     @Operation(summary = "Track shipment")
     @ApiResponse(responseCode = "200", description = "Passed stages of shipping")
-    @GetMapping("/shipping/{shipmentId}/track")
-    public List<ShippingLogInfo> trackShipment(@Parameter(description = "Identifier of shipment") @PathVariable int shipmentId) {
-        return shippingService.trackShipment(shipmentId);
+    @GetMapping("/{droneId}/shipping/{shipmentId}/track")
+    public List<ShippingLogInfo> trackShipment(@Parameter(description = "Identifier of drone") @PathVariable int droneId,
+                                               @Parameter(description = "Identifier of shipment") @PathVariable int shipmentId) {
+        return shippingService.trackShipment(droneId, shipmentId);
     }
 }

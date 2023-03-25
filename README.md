@@ -120,6 +120,15 @@ curl -X 'POST' \
 ````
 Where `goodsId` is the medication identifier and `quantity` is the required quantity in the order.
 
+:::note
+You can find all medications by following request:
+````shell
+curl -X 'GET' \
+  'http://localhost:8080/api/references/medications' \
+  -H 'accept: */*'
+````
+:::
+
 After perform you will be returned the identifier of shipment:
 ````json5
 {
@@ -128,22 +137,15 @@ After perform you will be returned the identifier of shipment:
 ````
 
 
-:::note 
-You can find all medications by following request: 
-````shell
-curl -X 'GET' \
-  'http://localhost:8080/api/references/medications' \
-  -H 'accept: */*'
-````
-:::
-
 4. With it, you can track the delivery status:
 ````shell
 curl -X 'GET' \
-  'http://localhost:8080/api/drones/shipping/1' \
+  'http://localhost:8080/api/drones/1/shipping/1' \
   -H 'accept: */*'
 ````
-The shipping detailed information:
+
+
+The request will return the detailed information about the shipping:
 ```json
 {
   "id": 1,

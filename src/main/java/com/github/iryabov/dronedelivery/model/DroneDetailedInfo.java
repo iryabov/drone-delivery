@@ -17,4 +17,6 @@ public class DroneDetailedInfo extends DroneBriefInfo {
     private Double weightLimit;
     @Schema(description = "Current drone's coordinates")
     private Location currentLocation;
+    @Schema(description = "Current shipping")
+    private ShippingBriefInfo shipping;
 }

@@ -88,8 +88,9 @@ public class ShippingServiceTest {
 
         var shipping = service.getShippingDetailedInfo(someDrone.getId(), shippingId);
         assertThat(shipping.getDeliveryStatus(), is(DeliveryStatus.PENDING));
-        assertThat(shipping.getDrone().getState(), is(DroneState.LOADING));
         assertThat(shipping.getPackageInfo().getTotalWeight(), is(0.5));
+        var drone = droneRepo.findById(someDrone.getId()).orElseThrow();
+        assertThat(drone.getState(), is(DroneState.LOADING));
 
         //Checking that the drone loaded
         waitingForStateChange(someDrone.getId(), DroneState.LOADED);
@@ -107,7 +108,8 @@ public class ShippingServiceTest {
 
         shipping = service.getShippingDetailedInfo(someDrone.getId(), shippingId);
         assertThat(shipping.getDeliveryStatus(), is(DeliveryStatus.SHIPPED));
-        assertThat(shipping.getDrone().getState(), is(DroneState.DELIVERING));
+        drone = droneRepo.findById(someDrone.getId()).orElseThrow();
+        assertThat(drone.getState(), is(DroneState.DELIVERING));
 
         //Passing the package to the customer
         waitingForStateChange(someDrone.getId(), DroneState.ARRIVED);
@@ -116,14 +118,16 @@ public class ShippingServiceTest {
 
         shipping = service.getShippingDetailedInfo(someDrone.getId(), shippingId);
         assertThat(shipping.getDeliveryStatus(), is(DeliveryStatus.DELIVERED));
-        assertThat(shipping.getDrone().getState(), is(DroneState.DELIVERED));
+        drone = droneRepo.findById(someDrone.getId()).orElseThrow();
+        assertThat(drone.getState(), is(DroneState.DELIVERED));
+        assertThat(drone.getShipping(), nullValue());
 
         //Returning the drone back
         service.returnBack(someDrone.getId());
         verify(driver).flyToBase();
 
-        shipping = service.getShippingDetailedInfo(someDrone.getId(), shippingId);
-        assertThat(shipping.getDrone().getState(), is(DroneState.RETURNING));
+        drone = droneRepo.findById(someDrone.getId()).orElseThrow();
+        assertThat(drone.getState(), is(DroneState.RETURNING));
 
         //Checking that the drone returned
         waitingForStateChange(someDrone.getId(), DroneState.IDLE);
@@ -132,7 +136,7 @@ public class ShippingServiceTest {
         assertThat(drones.stream().map(DroneBriefInfo::getId).collect(toList()), hasItem(someDrone.getId()));
 
         //Checking delivery logs
-        var logs = service.trackShipment(shippingId);
+        var logs = service.trackShipment(someDrone.getId(), shippingId);
         assertThat(logs.size(), is(3));
 
         assertThat(logs.get(0).getEvent(), is(ShippingEvent.STATUS_CHANGE));
